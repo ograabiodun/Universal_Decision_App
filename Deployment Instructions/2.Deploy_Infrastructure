@@ -1,0 +1,8 @@
+# Create resource group
+az group create --name decision-audit-rg --location eastus
+
+# Deploy Bicep template
+az deployment group create \
+  --resource-group decision-audit-rg \
+  --template-file infrastructure/main.bicep \
+  --parameters environment=prod

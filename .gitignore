@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vercel/
+.env
+.env.local
+.vs/
+backend/api/.azurite/
+backend/api/local.settings.json
+backend/api/dist/
+package-lock.json
+backend/api/package-lock.json

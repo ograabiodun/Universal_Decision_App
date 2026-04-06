@@ -1,0 +1,8 @@
+# Navigate to backend
+cd backend/api
+
+# Install dependencies
+npm install
+
+# Deploy to Azure Functions
+func azure functionapp publish decision-audit-func-prod

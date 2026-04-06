@@ -1,0 +1,14 @@
+# Navigate to frontend
+cd frontend/web
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Deploy to Azure Web App
+az webapp deployment source config-zip \
+  --resource-group decision-audit-rg \
+  --name decision-audit-web-prod \
+  --src dist.zip

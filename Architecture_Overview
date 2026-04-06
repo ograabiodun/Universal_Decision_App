@@ -1,0 +1,9 @@
+graph TB
+    A[React Web App] --> B[Azure Front Door/CDN]
+    B --> C[Azure App Service]
+    D[React Native Mobile App] --> B
+    C --> E[Azure Functions]
+    E --> F[Cosmos DB]
+    E --> G[Azure Cognitive Services]
+    H[Azure AD B2C] --> C
+    I[Application Insights] --> C
