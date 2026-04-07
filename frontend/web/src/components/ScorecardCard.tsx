@@ -40,7 +40,7 @@ export const ScorecardCard: React.FC<ScorecardCardProps> = ({ scorecard, onClick
                         </Typography>
                     </Box>
                     <Box sx={{ mt: 2 }}>
-                        <ScoreDisplay weightedScore={scorecard.weightedScore} size="small" />
+                        <ScoreDisplay totalScore={scorecard.totalScore} size="small" />
                     </Box>
                 </CardContent>
             </CardActionArea>

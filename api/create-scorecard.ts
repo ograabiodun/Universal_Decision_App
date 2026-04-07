@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { v4 as uuidv4 } from 'uuid';
 import { getDatabase } from './lib/mongodb';
 import { getUser } from './lib/auth';
-import { calculateWeightedScore, getVerdict } from './lib/scoring';
+import { calculateTotalScore, getVerdict } from './lib/scoring';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -10,15 +10,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { category, title, scores, isPreDecision } = req.body;
+        const { category, title, scores, isPreDecision, emotionBefore } = req.body;
 
         if (!category || !title || !scores || !Array.isArray(scores) || scores.length !== 4) {
             return res.status(400).json({ error: 'Invalid scorecard data' });
         }
 
+        const validScores = [-1, 0, 1];
+        const validLevels = ['good', 'partial', 'none'];
         for (const s of scores) {
-            if (!s.pillarId || typeof s.score !== 'number' || s.score < 1 || s.score > 5) {
-                return res.status(400).json({ error: 'Each score must have pillarId and score (1-5)' });
+            if (!s.pillarId || typeof s.score !== 'number' || !validScores.includes(s.score)) {
+                return res.status(400).json({ error: 'Each score must have pillarId and score (-1, 0, or 1)' });
+            }
+            if (s.level && !validLevels.includes(s.level)) {
+                return res.status(400).json({ error: 'Invalid level value' });
             }
         }
 
@@ -29,25 +34,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             pillarId: String(s.pillarId),
             pillarName: String(s.pillarName || s.pillarId),
             score: Number(s.score),
+            level: String(s.level || 'partial'),
             notes: String(s.notes || '')
         }));
 
-        const totalScore = sanitizedScores.reduce((sum: number, s: any) => sum + s.score, 0);
-        const weightedScore = calculateWeightedScore(sanitizedScores, category);
-        const verdict = getVerdict(weightedScore);
+        const totalScore = calculateTotalScore(sanitizedScores);
+        const verdict = getVerdict(totalScore);
 
-        const scorecard = {
+        const scorecard: any = {
             id: uuidv4(),
             userId,
             category: String(category),
             title: String(title),
             scores: sanitizedScores,
             totalScore,
-            weightedScore,
             verdict,
             isPreDecision: Boolean(isPreDecision),
             createdAt: new Date().toISOString()
         };
+
+        if (emotionBefore && Array.isArray(emotionBefore.emotions) && emotionBefore.emotions.length > 0) {
+            scorecard.emotionBefore = {
+                emotions: emotionBefore.emotions.map((e: any) => String(e)),
+                intensity: Math.min(10, Math.max(1, Number(emotionBefore.intensity) || 5))
+            };
+        }
 
         const db = await getDatabase();
         await db.collection('scorecards').insertOne(scorecard);

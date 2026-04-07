@@ -52,12 +52,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 function generateInsightPrompt(scores: any[]): string {
     const scoreSummary = scores.map((s: any) => {
-        const level = s.score >= 4 ? 'strong' : s.score >= 3 ? 'moderate' : 'weak';
-        return `${s.pillarName}: ${s.score}/5 (${level})`;
+        const level = s.level || (s.score === 1 ? 'good' : s.score === 0 ? 'partial' : 'none');
+        const levelLabel = level === 'good' ? 'Good ✅' : level === 'partial' ? 'Partial ⚠️' : 'None ❌';
+        return `${s.pillarName}: ${levelLabel}`;
     }).join('\n');
 
-    return `You are a decision-making coach. A user scored their decision on these pillars:
+    const totalScore = scores.reduce((sum: number, s: any) => sum + (s.score || 0), 0);
+
+    return `You are a decision-making coach. A user scored their decision on these 4 pillars (Good = +1, Partial = 0, None = -1):
 ${scoreSummary}
 
-Provide exactly 3 specific, actionable insights to improve their future decision-making. Be encouraging but honest. Each insight should be 1-2 sentences. Format as a numbered list.`;
+Total Score: ${totalScore} (range: -4 to +4)
+
+Provide exactly 3 specific, actionable insights to improve their future decision-making. Be encouraging but honest. Focus on the pillars marked "Partial" or "None" as areas for growth. Each insight should be 1-2 sentences. Format as a numbered list.`;
 }

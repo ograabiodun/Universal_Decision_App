@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { Scorecard } from '../types';
 import { api } from '../api/client';
-import { categories, pillars, getVerdictFromScore } from '../constants';
+import { categories, emotions, getLevelLabel } from '../constants';
 import { ScoreDisplay } from '../components/ScoreDisplay';
 
 export const ScorecardDetail: React.FC = () => {
@@ -92,7 +92,7 @@ export const ScorecardDetail: React.FC = () => {
         <Box>
             <Button onClick={() => navigate('/')} sx={{ mb: 2 }}>← Back to Dashboard</Button>
 
-            <ScoreDisplay weightedScore={scorecard.weightedScore} />
+            <ScoreDisplay totalScore={scorecard.totalScore} />
 
             <Card sx={{ mb: 3 }}>
                 <CardContent>
@@ -119,8 +119,7 @@ export const ScorecardDetail: React.FC = () => {
 
                     <Typography variant="subtitle2" gutterBottom>Pillar Scores</Typography>
                     {scorecard.scores.map(s => {
-                        const pillar = pillars.find(p => p.id === s.pillarId);
-                        const weight = cat?.weights[s.pillarId] || 1;
+                        const levelInfo = s.level ? getLevelLabel(s.level) : null;
 
                         return (
                             <Box key={s.pillarId} sx={{ mb: 2, p: 2, bgcolor: '#f5f7fa', borderRadius: 1 }}>
@@ -128,24 +127,14 @@ export const ScorecardDetail: React.FC = () => {
                                     <Typography variant="body2" fontWeight={600}>
                                         {s.pillarName}
                                     </Typography>
-                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                        {weight !== 1 && (
-                                            <Typography variant="caption" color="text.secondary">
-                                                ×{weight.toFixed(1)}
-                                            </Typography>
-                                        )}
+                                    {levelInfo && (
                                         <Chip
-                                            label={`${s.score}/5`}
+                                            label={`${levelInfo.icon} ${levelInfo.label}`}
                                             size="small"
-                                            color={s.score >= 4 ? 'success' : s.score >= 3 ? 'warning' : 'error'}
+                                            sx={{ bgcolor: `${levelInfo.color}20`, color: levelInfo.color, fontWeight: 600 }}
                                         />
-                                    </Box>
+                                    )}
                                 </Box>
-                                {pillar && (
-                                    <Typography variant="caption" color="text.secondary">
-                                        {pillar.descriptions[s.score]}
-                                    </Typography>
-                                )}
                                 {s.notes && (
                                     <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
                                         &ldquo;{s.notes}&rdquo;
@@ -154,6 +143,26 @@ export const ScorecardDetail: React.FC = () => {
                             </Box>
                         );
                     })}
+
+                    {scorecard.emotionBefore && scorecard.emotionBefore.emotions.length > 0 && (
+                        <>
+                            <Divider sx={{ my: 2 }} />
+                            <Typography variant="subtitle2" gutterBottom>Emotional State</Typography>
+                            <Box sx={{ p: 2, bgcolor: '#f0f0ff', borderRadius: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
+                                    {scorecard.emotionBefore.emotions.map(eid => {
+                                        const em = emotions.find(e => e.id === eid);
+                                        return em ? (
+                                            <Chip key={eid} label={`${em.icon} ${em.label}`} size="small" variant="outlined" />
+                                        ) : null;
+                                    })}
+                                </Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    Intensity: {scorecard.emotionBefore.intensity}/10
+                                </Typography>
+                            </Box>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 

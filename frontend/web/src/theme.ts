@@ -2,18 +2,25 @@ import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
     palette: {
-        primary: { main: '#1565c0' },
-        secondary: { main: '#f57c00' },
+        primary: { main: '#6366F1', light: '#818CF8', dark: '#4F46E5' },
+        secondary: { main: '#8B5CF6' },
+        success: { main: '#10B981' },
+        warning: { main: '#F59E0B' },
+        error: { main: '#EF4444' },
         background: {
-            default: '#f5f7fa',
-            paper: '#ffffff'
+            default: '#FAFAFA',
+            paper: '#FFFFFF'
+        },
+        text: {
+            primary: '#18181B',
+            secondary: '#71717A'
         }
     },
     typography: {
-        fontFamily: '"Inter", "Segoe UI", Roboto, sans-serif',
-        h4: { fontWeight: 700 },
-        h5: { fontWeight: 600 },
-        h6: { fontWeight: 600 }
+        fontFamily: '"Inter", -apple-system, "Segoe UI", Roboto, sans-serif',
+        h4: { fontFamily: '"Space Grotesk", "Inter", sans-serif', fontWeight: 700 },
+        h5: { fontFamily: '"Space Grotesk", "Inter", sans-serif', fontWeight: 600 },
+        h6: { fontFamily: '"Space Grotesk", "Inter", sans-serif', fontWeight: 600 }
     },
     shape: { borderRadius: 12 },
     components: {

@@ -9,18 +9,20 @@ export type DecisionCategory =
     | 'education'
     | 'business';
 
-export interface PillarDefinition {
-    id: string;
-    name: string;
-    question: string;
-    descriptions: Record<number, string>;
-}
+export type ScoreValue = -1 | 0 | 1;
+export type ScoreLevel = 'good' | 'partial' | 'none';
 
 export interface PillarScore {
     pillarId: string;
     pillarName: string;
-    score: number;
+    score: ScoreValue;
+    level: ScoreLevel;
     notes: string;
+}
+
+export interface EmotionEntry {
+    emotions: string[];
+    intensity: number;
 }
 
 export interface Scorecard {
@@ -31,9 +33,9 @@ export interface Scorecard {
     title: string;
     scores: PillarScore[];
     totalScore: number;
-    weightedScore: number;
     verdict: string;
     isPreDecision: boolean;
+    emotionBefore?: EmotionEntry;
     aiInsights?: string;
     createdAt: string;
     updatedAt?: string;
@@ -44,7 +46,12 @@ export interface CategoryInfo {
     label: string;
     icon: string;
     color: string;
-    weights: Record<string, number>;
+}
+
+export interface EmotionOption {
+    id: string;
+    label: string;
+    icon: string;
 }
 
 export interface AuthUser {

@@ -2,11 +2,18 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box, Stepper, Step, StepLabel, Button, Typography, Card, CardContent,
-    TextField, Alert, Chip, ToggleButton, ToggleButtonGroup, Paper
+    TextField, Alert, Chip, ToggleButton, ToggleButtonGroup, Paper, Slider
 } from '@mui/material';
-import { pillars, categories, calculateWeightedScore, getVerdictFromScore, getScorePercent } from '../constants';
+import { pillars, categories, emotions, getVerdictFromTotal, getLevelLabel } from '../constants';
 import { ScoreDisplay } from '../components/ScoreDisplay';
+import { ScoreLevel, ScoreValue, EmotionEntry } from '../types';
 import { api } from '../api/client';
+
+interface PillarState {
+    score: ScoreValue | null;
+    level: ScoreLevel | null;
+    notes: string;
+}
 
 export const NewScorecard: React.FC = () => {
     const navigate = useNavigate();
@@ -14,16 +21,17 @@ export const NewScorecard: React.FC = () => {
     const [category, setCategory] = useState('');
     const [title, setTitle] = useState('');
     const [isPreDecision, setIsPreDecision] = useState(true);
-    const [scores, setScores] = useState<Record<string, { score: number | null; notes: string }>>(
-        pillars.reduce((acc, p) => ({ ...acc, [p.id]: { score: null, notes: '' } }), {})
+    const [scores, setScores] = useState<Record<string, PillarState>>(
+        pillars.reduce((acc, p) => ({ ...acc, [p.id]: { score: null, level: null, notes: '' } }), {})
     );
+    const [emotionBefore, setEmotionBefore] = useState<EmotionEntry>({ emotions: [], intensity: 5 });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleScoreChange = (pillarId: string, value: number) => {
+    const handleScoreChange = (pillarId: string, value: ScoreValue, level: ScoreLevel) => {
         setScores(prev => ({
             ...prev,
-            [pillarId]: { ...prev[pillarId], score: value }
+            [pillarId]: { ...prev[pillarId], score: value, level }
         }));
     };
 
@@ -34,14 +42,20 @@ export const NewScorecard: React.FC = () => {
         }));
     };
 
+    const toggleEmotion = (emotionId: string) => {
+        setEmotionBefore(prev => ({
+            ...prev,
+            emotions: prev.emotions.includes(emotionId)
+                ? prev.emotions.filter(e => e !== emotionId)
+                : [...prev.emotions, emotionId]
+        }));
+    };
+
     const allScored = Object.values(scores).every(s => s.score !== null);
 
-    const scoredPillars = Object.entries(scores)
-        .filter(([_, s]) => s.score !== null)
-        .map(([pillarId, s]) => ({ pillarId, score: s.score as number }));
-
-    const weightedAvg = allScored ? calculateWeightedScore(scoredPillars, category) : 0;
-    const verdict = getVerdictFromScore(weightedAvg);
+    const totalScore = allScored
+        ? Object.values(scores).reduce((sum, s) => sum + (s.score as number), 0)
+        : 0;
 
     const handleSubmit = async () => {
         setSaving(true);
@@ -51,10 +65,12 @@ export const NewScorecard: React.FC = () => {
                 category,
                 title,
                 isPreDecision,
+                emotionBefore: emotionBefore.emotions.length > 0 ? emotionBefore : undefined,
                 scores: Object.entries(scores).map(([pillarId, data]) => ({
                     pillarId,
                     pillarName: pillars.find(p => p.id === pillarId)?.name || pillarId,
                     score: data.score,
+                    level: data.level,
                     notes: data.notes
                 }))
             };
@@ -70,12 +86,13 @@ export const NewScorecard: React.FC = () => {
     return (
         <Box>
             <Typography variant="h5" fontWeight={700} gutterBottom>
-                New Decision Scorecard
+                New Decision Audit
             </Typography>
 
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-                <Step><StepLabel>Category</StepLabel></Step>
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }} alternativeLabel>
+                <Step><StepLabel>Context</StepLabel></Step>
                 <Step><StepLabel>Score Pillars</StepLabel></Step>
+                <Step><StepLabel>Emotional Check-in</StepLabel></Step>
                 <Step><StepLabel>Review & Save</StepLabel></Step>
             </Stepper>
 
@@ -101,7 +118,7 @@ export const NewScorecard: React.FC = () => {
                                         border: category === cat.value
                                             ? `2px solid ${cat.color}`
                                             : '2px solid transparent',
-                                        bgcolor: category === cat.value ? `${cat.color}10` : 'background.paper',
+                                        bgcolor: category === cat.value ? `${cat.color}15` : 'background.paper',
                                         transition: 'all 0.2s',
                                         '&:hover': { transform: 'translateY(-2px)', boxShadow: 2 }
                                     }}
@@ -152,11 +169,13 @@ export const NewScorecard: React.FC = () => {
             {activeStep === 1 && (
                 <Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        Rate each pillar from 1 (worst) to 5 (best). All pillars must be scored.
+                        For each pillar, choose the option that best describes your situation.
                     </Typography>
 
                     {pillars.map(pillar => {
-                        const currentScore = scores[pillar.id].score;
+                        const currentState = scores[pillar.id];
+                        const question = isPreDecision ? pillar.preQuestion : pillar.postQuestion;
+
                         return (
                             <Card key={pillar.id} sx={{ mb: 2 }}>
                                 <CardContent>
@@ -164,33 +183,41 @@ export const NewScorecard: React.FC = () => {
                                         {pillar.name}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                        {pillar.question}
+                                        {question}
                                     </Typography>
 
-                                    <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                                        {[1, 2, 3, 4, 5].map(val => (
-                                            <Chip
-                                                key={val}
-                                                label={val}
-                                                onClick={() => handleScoreChange(pillar.id, val)}
-                                                color={currentScore === val ? 'primary' : 'default'}
-                                                variant={currentScore === val ? 'filled' : 'outlined'}
-                                                sx={{
-                                                    minWidth: 44, fontWeight: 700, fontSize: '1rem',
-                                                    ...(currentScore === val && {
-                                                        bgcolor: val <= 2 ? '#d32f2f' : val === 3 ? '#f57c00' : '#2e7d32',
-                                                        color: 'white'
-                                                    })
-                                                }}
-                                            />
-                                        ))}
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                                        {pillar.options.map(option => {
+                                            const isSelected = currentState.level === option.level;
+                                            const levelInfo = getLevelLabel(option.level);
+                                            return (
+                                                <Paper
+                                                    key={option.level}
+                                                    onClick={() => handleScoreChange(pillar.id, option.value, option.level)}
+                                                    elevation={isSelected ? 3 : 0}
+                                                    sx={{
+                                                        p: 2, cursor: 'pointer',
+                                                        border: isSelected
+                                                            ? `2px solid ${levelInfo.color}`
+                                                            : '2px solid #E4E4E7',
+                                                        bgcolor: isSelected ? `${levelInfo.color}10` : 'background.paper',
+                                                        transition: 'all 0.2s',
+                                                        '&:hover': { borderColor: levelInfo.color, bgcolor: `${levelInfo.color}08` }
+                                                    }}
+                                                >
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Typography variant="body1">{option.icon}</Typography>
+                                                        <Typography variant="body2" fontWeight={600}>
+                                                            {option.label}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ ml: 3.5 }}>
+                                                        {isPreDecision ? option.preDescription : option.postDescription}
+                                                    </Typography>
+                                                </Paper>
+                                            );
+                                        })}
                                     </Box>
-
-                                    {currentScore !== null && (
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                            {pillar.descriptions[currentScore]}
-                                        </Typography>
-                                    )}
 
                                     <TextField
                                         fullWidth
@@ -215,15 +242,77 @@ export const NewScorecard: React.FC = () => {
                             disabled={!allScored}
                             fullWidth
                         >
-                            {allScored ? 'Next: Review' : `Score all pillars (${scoredPillars.length}/4)`}
+                            {allScored
+                                ? 'Next: Emotional Check-in'
+                                : `Score all pillars (${Object.values(scores).filter(s => s.score !== null).length}/4)`}
                         </Button>
                     </Box>
                 </Box>
             )}
 
             {activeStep === 2 && (
+                <Card>
+                    <CardContent sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            How are you feeling right now?
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            Select any emotions that apply. This helps track your emotional patterns over time.
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
+                            {emotions.map(emotion => {
+                                const isSelected = emotionBefore.emotions.includes(emotion.id);
+                                return (
+                                    <Chip
+                                        key={emotion.id}
+                                        label={`${emotion.icon} ${emotion.label}`}
+                                        onClick={() => toggleEmotion(emotion.id)}
+                                        color={isSelected ? 'primary' : 'default'}
+                                        variant={isSelected ? 'filled' : 'outlined'}
+                                        sx={{ fontSize: '0.9rem', py: 2.5 }}
+                                    />
+                                );
+                            })}
+                        </Box>
+
+                        {emotionBefore.emotions.length > 0 && (
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="body2" fontWeight={600} gutterBottom>
+                                    Emotional Intensity
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    How strong are these feelings? (1 = mild, 10 = overwhelming)
+                                </Typography>
+                                <Slider
+                                    value={emotionBefore.intensity}
+                                    onChange={(_, v) => setEmotionBefore(prev => ({ ...prev, intensity: v as number }))}
+                                    min={1}
+                                    max={10}
+                                    marks
+                                    valueLabelDisplay="auto"
+                                    sx={{ mt: 2 }}
+                                />
+                            </Box>
+                        )}
+
+                        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                            <Button onClick={() => setActiveStep(1)}>Back</Button>
+                            <Button
+                                variant="contained"
+                                onClick={() => setActiveStep(3)}
+                                fullWidth
+                            >
+                                Next: Review
+                            </Button>
+                        </Box>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeStep === 3 && (
                 <Box>
-                    <ScoreDisplay weightedScore={weightedAvg} />
+                    <ScoreDisplay totalScore={totalScore} />
 
                     <Card sx={{ mb: 3 }}>
                         <CardContent>
@@ -237,8 +326,7 @@ export const NewScorecard: React.FC = () => {
 
                             {pillars.map(pillar => {
                                 const s = scores[pillar.id];
-                                const cat = categories.find(c => c.value === category);
-                                const weight = cat?.weights[pillar.id] || 1;
+                                const levelInfo = s.level ? getLevelLabel(s.level) : null;
 
                                 return (
                                     <Box key={pillar.id} sx={{ mb: 2, p: 1.5, bgcolor: '#f5f7fa', borderRadius: 1 }}>
@@ -246,18 +334,13 @@ export const NewScorecard: React.FC = () => {
                                             <Typography variant="body2" fontWeight={600}>
                                                 {pillar.name}
                                             </Typography>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                {weight !== 1 && (
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        ×{weight.toFixed(1)}
-                                                    </Typography>
-                                                )}
+                                            {levelInfo && (
                                                 <Chip
-                                                    label={`${s.score}/5`}
+                                                    label={`${levelInfo.icon} ${levelInfo.label}`}
                                                     size="small"
-                                                    color={(s.score || 0) >= 4 ? 'success' : (s.score || 0) >= 3 ? 'warning' : 'error'}
+                                                    sx={{ bgcolor: `${levelInfo.color}20`, color: levelInfo.color, fontWeight: 600 }}
                                                 />
-                                            </Box>
+                                            )}
                                         </Box>
                                         {s.notes && (
                                             <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -267,13 +350,32 @@ export const NewScorecard: React.FC = () => {
                                     </Box>
                                 );
                             })}
+
+                            {emotionBefore.emotions.length > 0 && (
+                                <Box sx={{ mt: 2, p: 1.5, bgcolor: '#f0f0ff', borderRadius: 1 }}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>
+                                        Emotional State
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                        {emotionBefore.emotions.map(eid => {
+                                            const em = emotions.find(e => e.id === eid);
+                                            return em ? (
+                                                <Chip key={eid} label={`${em.icon} ${em.label}`} size="small" variant="outlined" />
+                                            ) : null;
+                                        })}
+                                    </Box>
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                        Intensity: {emotionBefore.intensity}/10
+                                    </Typography>
+                                </Box>
+                            )}
                         </CardContent>
                     </Card>
 
                     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button onClick={() => setActiveStep(1)} disabled={saving}>Back</Button>
+                        <Button onClick={() => setActiveStep(2)} disabled={saving}>Back</Button>
                         <Button
                             variant="contained"
                             onClick={handleSubmit}

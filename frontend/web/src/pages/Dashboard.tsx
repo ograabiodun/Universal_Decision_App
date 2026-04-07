@@ -6,7 +6,7 @@ import {
 import { Scorecard } from '../types';
 import { api } from '../api/client';
 import { ScorecardCard } from '../components/ScorecardCard';
-import { getScorePercent, getVerdictFromScore } from '../constants';
+import { getVerdictFromTotal } from '../constants';
 
 interface DashboardProps {
     isGuest: boolean;
@@ -38,8 +38,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
     };
 
     const avgScore = scorecards.length > 0
-        ? scorecards.reduce((sum, s) => sum + (s.weightedScore || 0), 0) / scorecards.length
+        ? Math.round(scorecards.reduce((sum, s) => sum + (s.totalScore || 0), 0) / scorecards.length)
         : 0;
+    const avgVerdict = getVerdictFromTotal(avgScore);
 
     return (
         <Box>
@@ -51,7 +52,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                     </Typography>
                 </Box>
                 <Button variant="contained" onClick={() => navigate('/new')} size="large">
-                    + New Scorecard
+                    + New Audit
                 </Button>
             </Box>
 
@@ -76,9 +77,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                             <Typography
                                 variant="h3"
                                 fontWeight={700}
-                                sx={{ color: getVerdictFromScore(avgScore).color }}
+                                sx={{ color: avgVerdict.color, fontFamily: '"JetBrains Mono", monospace' }}
                             >
-                                {getScorePercent(avgScore)}%
+                                {avgScore > 0 ? `+${avgScore}` : avgScore}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Average Score
@@ -87,11 +88,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                     </Card>
                     <Card>
                         <CardContent sx={{ textAlign: 'center' }}>
-                            <Typography variant="h3" fontWeight={700} color="secondary">
-                                {getVerdictFromScore(avgScore).icon}
+                            <Typography variant="h3" fontWeight={700} sx={{ color: avgVerdict.color }}>
+                                {avgVerdict.icon}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                {getVerdictFromScore(avgScore).label} Average
+                                {avgVerdict.label} Average
                             </Typography>
                         </CardContent>
                     </Card>

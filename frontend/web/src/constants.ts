@@ -1,95 +1,104 @@
-import { PillarDefinition, CategoryInfo } from './types';
+import { CategoryInfo, EmotionOption, ScoreLevel, ScoreValue } from './types';
+
+export interface PillarOption {
+    level: ScoreLevel;
+    value: ScoreValue;
+    label: string;
+    preDescription: string;
+    postDescription: string;
+    icon: string;
+}
+
+export interface PillarDefinition {
+    id: string;
+    name: string;
+    preQuestion: string;
+    postQuestion: string;
+    options: PillarOption[];
+}
 
 export const pillars: PillarDefinition[] = [
     {
         id: 'planning',
         name: 'Planning & Preparation',
-        question: 'How well did you plan and prepare for this decision?',
-        descriptions: {
-            1: 'No plan — acted completely on impulse with no preparation',
-            2: 'Minimal — had a vague idea but no real structure',
-            3: 'Partial — basic plan exists but with notable gaps',
-            4: 'Solid — clear plan with budget/timeline and contingencies',
-            5: 'Thorough — comprehensive preparation with backup plans'
-        }
+        preQuestion: 'Do you have a budget, timeline, or plan?',
+        postQuestion: 'Did you have a budget, timeline, or plan?',
+        options: [
+            { level: 'good', value: 1, label: 'Yes', preDescription: 'I have a clear plan, budget, or timeline in place', postDescription: 'I had a clear plan, budget, or timeline in place', icon: '✅' },
+            { level: 'partial', value: 0, label: 'Partially', preDescription: 'I have a rough idea but nothing structured', postDescription: 'I had a rough idea but nothing structured', icon: '⚠️' },
+            { level: 'none', value: -1, label: 'No', preDescription: 'No plan — acting on impulse', postDescription: 'No plan — acted completely on impulse', icon: '❌' }
+        ]
     },
     {
         id: 'research',
         name: 'Research & Analysis',
-        question: 'How thoroughly did you explore alternatives and gather information?',
-        descriptions: {
-            1: 'None — made no effort to explore options',
-            2: 'Minimal — glanced at a few options without depth',
-            3: 'Moderate — explored some alternatives with partial comparison',
-            4: 'Good — compared multiple options with some expert input',
-            5: 'Extensive — thorough research with data and expert advice'
-        }
+        preQuestion: 'Have you explored alternatives and gathered information?',
+        postQuestion: 'Did you explore alternatives and gather information?',
+        options: [
+            { level: 'good', value: 1, label: 'Yes', preDescription: 'I\'ve compared options and consulted sources', postDescription: 'I compared options and consulted sources', icon: '✅' },
+            { level: 'partial', value: 0, label: 'Partially', preDescription: 'Some research, but gaps remain', postDescription: 'Some research was done, but with gaps', icon: '⚠️' },
+            { level: 'none', value: -1, label: 'No', preDescription: 'No research — going with first option', postDescription: 'No research — went with first option', icon: '❌' }
+        ]
     },
     {
         id: 'timing',
         name: 'Timing & Urgency',
-        question: 'How well-timed was your decision?',
-        descriptions: {
-            1: 'Terrible — drastically mistimed, caused real harm',
-            2: 'Poor — notably too late or too early',
-            3: 'Acceptable — not ideal timing but workable',
-            4: 'Good — acted at a reasonable time with awareness',
-            5: 'Optimal — perfect timing, proactive and prevented issues'
-        }
+        preQuestion: 'Is the timing right, or are you rushing?',
+        postQuestion: 'Was the timing right, or did you rush?',
+        options: [
+            { level: 'good', value: 1, label: 'Good timing', preDescription: 'This is the right moment — no unnecessary rush', postDescription: 'It was the right moment — no unnecessary rush', icon: '✅' },
+            { level: 'partial', value: 0, label: 'Acceptable', preDescription: 'Not ideal timing, but workable', postDescription: 'Not ideal timing, but it worked out', icon: '⚠️' },
+            { level: 'none', value: -1, label: 'Rushed / Too late', preDescription: 'Rushing or waiting too long under pressure', postDescription: 'Rushed or waited too long under pressure', icon: '❌' }
+        ]
     },
     {
         id: 'emotional',
         name: 'Emotional Control',
-        question: 'How calm and rational were you during this decision?',
-        descriptions: {
-            1: 'None — completely driven by panic, fear, or impulse',
-            2: 'Low — emotions heavily influenced the outcome',
-            3: 'Mixed — some emotional influence but partly rational',
-            4: 'Good — mostly calm and deliberate despite pressure',
-            5: 'Full — completely clear-headed and objective'
-        }
+        preQuestion: 'Are you feeling calm and rational right now?',
+        postQuestion: 'Were you calm and rational during this decision?',
+        options: [
+            { level: 'good', value: 1, label: 'Calm', preDescription: 'Clear-headed and thinking objectively', postDescription: 'Was clear-headed and thought objectively', icon: '✅' },
+            { level: 'partial', value: 0, label: 'Mixed', preDescription: 'Some emotional influence but partly rational', postDescription: 'Some emotional influence but partly rational', icon: '⚠️' },
+            { level: 'none', value: -1, label: 'Emotional', preDescription: 'Driven by strong emotions like fear, anger, or excitement', postDescription: 'Was driven by strong emotions', icon: '❌' }
+        ]
     }
+];
+
+export const emotions: EmotionOption[] = [
+    { id: 'anxious', label: 'Anxious', icon: '😰' },
+    { id: 'calm', label: 'Calm', icon: '😌' },
+    { id: 'uncertain', label: 'Uncertain', icon: '🤔' },
+    { id: 'excited', label: 'Excited', icon: '😊' },
+    { id: 'confident', label: 'Confident', icon: '💪' },
+    { id: 'pressured', label: 'Pressured', icon: '😤' },
+    { id: 'hopeful', label: 'Hopeful', icon: '🌟' },
+    { id: 'fearful', label: 'Fearful', icon: '😨' }
 ];
 
 export const categories: CategoryInfo[] = [
-    { value: 'career', label: 'Career', icon: '💼', color: '#1565c0', weights: { planning: 1.2, research: 1.3, timing: 1.0, emotional: 0.8 } },
-    { value: 'relationships', label: 'Relationships', icon: '❤️', color: '#c62828', weights: { planning: 0.8, research: 0.9, timing: 1.1, emotional: 1.5 } },
-    { value: 'family', label: 'Family', icon: '👨‍👩‍👧‍👦', color: '#2e7d32', weights: { planning: 1.0, research: 0.9, timing: 1.1, emotional: 1.3 } },
-    { value: 'investments', label: 'Investments', icon: '📈', color: '#e65100', weights: { planning: 1.4, research: 1.4, timing: 1.0, emotional: 0.5 } },
-    { value: 'savings', label: 'Savings', icon: '💰', color: '#6a1b9a', weights: { planning: 1.5, research: 1.0, timing: 0.9, emotional: 0.9 } },
-    { value: 'purchases', label: 'Purchases', icon: '🛍️', color: '#d32f2f', weights: { planning: 1.2, research: 1.4, timing: 0.8, emotional: 0.9 } },
-    { value: 'health', label: 'Health', icon: '🏥', color: '#00838f', weights: { planning: 1.0, research: 1.3, timing: 1.2, emotional: 0.8 } },
-    { value: 'education', label: 'Education', icon: '🎓', color: '#283593', weights: { planning: 1.3, research: 1.3, timing: 0.8, emotional: 0.9 } },
-    { value: 'business', label: 'Business', icon: '🏢', color: '#4e342e', weights: { planning: 1.3, research: 1.3, timing: 1.0, emotional: 0.7 } }
+    { value: 'career', label: 'Career', icon: '💼', color: '#6366F1' },
+    { value: 'relationships', label: 'Relationships', icon: '❤️', color: '#EC4899' },
+    { value: 'family', label: 'Family', icon: '👨‍👩‍👧‍👦', color: '#10B981' },
+    { value: 'investments', label: 'Investments', icon: '📈', color: '#F59E0B' },
+    { value: 'savings', label: 'Savings', icon: '💰', color: '#8B5CF6' },
+    { value: 'purchases', label: 'Purchases', icon: '🛍️', color: '#EF4444' },
+    { value: 'health', label: 'Health', icon: '🏥', color: '#06B6D4' },
+    { value: 'education', label: 'Education', icon: '🎓', color: '#4F46E5' },
+    { value: 'business', label: 'Business', icon: '🏢', color: '#78716C' }
 ];
 
-export function calculateWeightedScore(
-    scores: { pillarId: string; score: number }[],
-    category: string
-): number {
-    const cat = categories.find(c => c.value === category);
-    if (!cat) {
-        return scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
-    }
-    let weightedSum = 0;
-    let totalWeight = 0;
-    for (const s of scores) {
-        const weight = cat.weights[s.pillarId] || 1.0;
-        weightedSum += s.score * weight;
-        totalWeight += weight;
-    }
-    return totalWeight > 0 ? weightedSum / totalWeight : 0;
+export function getVerdictFromTotal(totalScore: number): { label: string; color: string; icon: string } {
+    if (totalScore >= 3) return { label: 'Excellent', color: '#10B981', icon: '🌟' };
+    if (totalScore >= 1) return { label: 'Acceptable', color: '#6366F1', icon: '✅' };
+    if (totalScore === 0) return { label: 'Borderline', color: '#F59E0B', icon: '⚠️' };
+    if (totalScore >= -2) return { label: 'Poor', color: '#F97316', icon: '🚩' };
+    return { label: 'Critical', color: '#EF4444', icon: '💥' };
 }
 
-export function getVerdictFromScore(weightedAvg: number): { label: string; color: string; icon: string } {
-    const pct = ((weightedAvg - 1) / 4) * 100;
-    if (pct >= 85) return { label: 'Excellent', color: '#2e7d32', icon: '🌟' };
-    if (pct >= 70) return { label: 'Good', color: '#558b2f', icon: '✅' };
-    if (pct >= 50) return { label: 'Fair', color: '#f57f17', icon: '⚠️' };
-    if (pct >= 25) return { label: 'Poor', color: '#e65100', icon: '🚩' };
-    return { label: 'Critical', color: '#b71c1c', icon: '💥' };
-}
-
-export function getScorePercent(weightedAvg: number): number {
-    return Math.round(((weightedAvg - 1) / 4) * 100);
+export function getLevelLabel(level: ScoreLevel): { label: string; color: string; icon: string } {
+    switch (level) {
+        case 'good': return { label: 'Good', color: '#10B981', icon: '✅' };
+        case 'partial': return { label: 'Partial', color: '#F59E0B', icon: '⚠️' };
+        case 'none': return { label: 'None', color: '#EF4444', icon: '❌' };
+    }
 }
