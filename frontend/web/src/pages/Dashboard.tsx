@@ -7,7 +7,7 @@ import { Scorecard } from '../types';
 import { api } from '../api/client';
 import { ScorecardCard } from '../components/ScorecardCard';
 import { getVerdictFromTotal, getLevelLabel } from '../constants';
-import { buildDecisionProfile, buildCategoryAnalytics } from '../lib/analytics';
+import { buildDecisionProfile, buildCategoryAnalytics, detectPatterns } from '../lib/analytics';
 
 interface DashboardProps {
     isGuest: boolean;
@@ -44,6 +44,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
     const avgVerdict = getVerdictFromTotal(avgScore);
     const profile = buildDecisionProfile(scorecards);
     const categoryAnalytics = buildCategoryAnalytics(scorecards);
+    const patternWarnings = detectPatterns(scorecards);
+    const hasCritical = patternWarnings.some(w => w.severity === 'critical');
 
     return (
         <Box>
@@ -103,6 +105,39 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                         </CardContent>
                     </Card>
                 </Box>
+            )}
+
+            {patternWarnings.length > 0 && (
+                <Card sx={{
+                    mb: 4,
+                    bgcolor: hasCritical ? '#FEF2F2' : patternWarnings[0]?.severity === 'info' ? '#F0FDF4' : '#FFFBEB',
+                    border: `1px solid ${hasCritical ? '#EF444430' : patternWarnings[0]?.severity === 'info' ? '#10B98130' : '#F59E0B30'}`
+                }}>
+                    <CardContent>
+                        <Typography variant="h6" fontWeight={700} gutterBottom>
+                            🔍 Patterns Detected
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Based on your decision history, here's what the system has learned about your habits.
+                        </Typography>
+                        {patternWarnings.map((warning, i) => (
+                            <Box key={i} sx={{
+                                mb: 1.5, p: 1.5, borderRadius: 1,
+                                bgcolor: warning.severity === 'critical' ? '#FEE2E2'
+                                    : warning.severity === 'warning' ? '#FEF3C7'
+                                    : '#ECFDF5',
+                                border: `1px solid ${warning.severity === 'critical' ? '#EF444430'
+                                    : warning.severity === 'warning' ? '#F59E0B30'
+                                    : '#10B98130'}`
+                            }}>
+                                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                                    {warning.icon} {warning.title}
+                                </Typography>
+                                <Typography variant="body2">{warning.message}</Typography>
+                            </Box>
+                        ))}
+                    </CardContent>
+                </Card>
             )}
 
             {profile && (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box, Stepper, Step, StepLabel, Button, Typography, Card, CardContent,
@@ -6,8 +6,9 @@ import {
 } from '@mui/material';
 import { pillars, categories, emotions, getVerdictFromTotal, getLevelLabel, generateRuleBasedInsights, getPillarFeedback } from '../constants';
 import { ScoreDisplay } from '../components/ScoreDisplay';
-import { ScoreLevel, ScoreValue, EmotionEntry, DecisionCategory } from '../types';
+import { ScoreLevel, ScoreValue, EmotionEntry, DecisionCategory, Scorecard, PatternWarning } from '../types';
 import { api } from '../api/client';
+import { detectPatterns } from '../lib/analytics';
 
 interface PillarState {
     score: ScoreValue | null;
@@ -27,6 +28,20 @@ export const NewScorecard: React.FC = () => {
     const [emotionBefore, setEmotionBefore] = useState<EmotionEntry>({ emotions: [], intensity: 5 });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [history, setHistory] = useState<Scorecard[]>([]);
+    const [categoryWarnings, setCategoryWarnings] = useState<PatternWarning[]>([]);
+
+    useEffect(() => {
+        api.getScorecards().then(setHistory).catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        if (category && history.length >= 3) {
+            setCategoryWarnings(detectPatterns(history, category as DecisionCategory));
+        } else {
+            setCategoryWarnings([]);
+        }
+    }, [category, history]);
 
     const handleScoreChange = (pillarId: string, value: ScoreValue, level: ScoreLevel) => {
         setScores(prev => ({
@@ -152,6 +167,22 @@ export const NewScorecard: React.FC = () => {
                                 <ToggleButton value="post">🔍 Post-decision (review)</ToggleButton>
                             </ToggleButtonGroup>
                         </Box>
+
+                        {categoryWarnings.length > 0 && (
+                            <Alert
+                                severity={categoryWarnings.some(w => w.severity === 'critical') ? 'error' : 'warning'}
+                                sx={{ mb: 3 }}
+                            >
+                                <Typography variant="body2" fontWeight={600} gutterBottom>
+                                    📋 Pattern Alert{categoryWarnings.length > 1 ? 's' : ''}
+                                </Typography>
+                                {categoryWarnings.slice(0, 3).map((w, i) => (
+                                    <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
+                                        {w.icon} {w.message}
+                                    </Typography>
+                                ))}
+                            </Alert>
+                        )}
 
                         <Button
                             variant="contained"

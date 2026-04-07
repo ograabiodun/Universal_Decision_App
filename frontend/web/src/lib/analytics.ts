@@ -1,4 +1,4 @@
-import { Scorecard, DecisionCategory, ScoreLevel, CategoryAnalytics, DecisionProfile } from '../types';
+import { Scorecard, DecisionCategory, ScoreLevel, CategoryAnalytics, DecisionProfile, PatternWarning } from '../types';
 import { categories, emotions, getVerdictFromTotal } from '../constants';
 
 export function buildCategoryAnalytics(scorecards: Scorecard[]): CategoryAnalytics[] {
@@ -134,4 +134,176 @@ export function buildDecisionProfile(scorecards: Scorecard[]): DecisionProfile |
         strengths,
         weaknesses
     };
+}
+
+export function detectPatterns(
+    scorecards: Scorecard[],
+    currentCategory?: DecisionCategory
+): PatternWarning[] {
+    const warnings: PatternWarning[] = [];
+    if (scorecards.length < 3) return warnings;
+
+    const sorted = [...scorecards].sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const recent = sorted.slice(0, Math.min(10, sorted.length));
+    const overallAvg = scorecards.reduce((sum, s) => sum + s.totalScore, 0) / scorecards.length;
+
+    // 1. Recurring pillar weakness
+    const pillarIds = ['planning', 'research', 'timing', 'emotional'];
+    for (const pid of pillarIds) {
+        const recentScores = recent
+            .map(sc => sc.scores.find(s => s.pillarId === pid))
+            .filter(Boolean) as { pillarId: string; pillarName: string; level: string; score: number }[];
+
+        if (recentScores.length < 3) continue;
+
+        const noneCount = recentScores.filter(s => s.level === 'none').length;
+        const partialCount = recentScores.filter(s => s.level === 'partial').length;
+        const pillarName = recentScores[0].pillarName;
+
+        if (noneCount >= 3) {
+            warnings.push({
+                type: 'recurring_weakness',
+                severity: noneCount >= 4 ? 'critical' : 'warning',
+                icon: '🔁',
+                title: `Recurring gap: ${pillarName}`,
+                message: `You've scored "None" on ${pillarName} in ${noneCount} of your last ${recentScores.length} decisions. This is a persistent blind spot that's costing you.`,
+                pillarId: pid
+            });
+        } else if (noneCount + partialCount >= Math.ceil(recentScores.length * 0.7) && recentScores.length >= 4) {
+            warnings.push({
+                type: 'recurring_weakness',
+                severity: 'warning',
+                icon: '🔁',
+                title: `Weak pattern: ${pillarName}`,
+                message: `${pillarName} is consistently weak or partial in ${noneCount + partialCount} of ${recentScores.length} recent decisions. Targeted improvement here would lift your overall scores.`,
+                pillarId: pid
+            });
+        }
+    }
+
+    // 2. Emotion-score correlation
+    const emotionScorePairs: Record<string, number[]> = {};
+    for (const sc of scorecards) {
+        if (sc.emotionBefore?.emotions) {
+            for (const eid of sc.emotionBefore.emotions) {
+                if (!emotionScorePairs[eid]) emotionScorePairs[eid] = [];
+                emotionScorePairs[eid].push(sc.totalScore);
+            }
+        }
+    }
+
+    for (const [eid, scores] of Object.entries(emotionScorePairs)) {
+        if (scores.length < 2) continue;
+        const emotionAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const em = emotions.find(e => e.id === eid);
+        const roundedEmotionAvg = Math.round(emotionAvg * 10) / 10;
+        const roundedOverallAvg = Math.round(overallAvg * 10) / 10;
+
+        if (emotionAvg <= -1 && emotionAvg < overallAvg - 1) {
+            warnings.push({
+                type: 'emotion_correlation',
+                severity: 'warning',
+                icon: em?.icon || '😰',
+                title: `${em?.label || eid} leads to poor decisions`,
+                message: `When you feel ${em?.label || eid}, your average score is ${roundedEmotionAvg > 0 ? '+' : ''}${roundedEmotionAvg} vs your overall ${roundedOverallAvg > 0 ? '+' : ''}${roundedOverallAvg}. Consider waiting until this feeling passes.`
+            });
+        } else if (emotionAvg >= 1.5 && emotionAvg > overallAvg + 0.5 && scores.length >= 3) {
+            warnings.push({
+                type: 'emotion_correlation',
+                severity: 'info',
+                icon: em?.icon || '✨',
+                title: `${em?.label || eid} correlates with good decisions`,
+                message: `When feeling ${em?.label || eid}, your average score is ${roundedEmotionAvg > 0 ? '+' : ''}${roundedEmotionAvg}. You tend to decide more carefully in this state.`
+            });
+        }
+    }
+
+    // 3. Category-specific blind spots
+    if (currentCategory) {
+        const catCards = scorecards.filter(sc => sc.category === currentCategory);
+        if (catCards.length >= 2) {
+            const pillarTotals: Record<string, { sum: number; count: number; name: string }> = {};
+            for (const sc of catCards) {
+                for (const s of sc.scores) {
+                    if (!pillarTotals[s.pillarId]) pillarTotals[s.pillarId] = { sum: 0, count: 0, name: s.pillarName };
+                    pillarTotals[s.pillarId].sum += s.score;
+                    pillarTotals[s.pillarId].count++;
+                }
+            }
+            for (const [pid, data] of Object.entries(pillarTotals)) {
+                const avg = data.sum / data.count;
+                if (avg <= -0.5 && data.count >= 2) {
+                    const catInfo = categories.find(c => c.value === currentCategory);
+                    warnings.push({
+                        type: 'category_blindspot',
+                        severity: 'warning',
+                        icon: '🎯',
+                        title: `${catInfo?.icon || ''} ${catInfo?.label || currentCategory}: Always weak on ${data.name}`,
+                        message: `In ${catInfo?.label || currentCategory} decisions, your ${data.name} averages ${avg > 0 ? '+' : ''}${Math.round(avg * 10) / 10}. Make a conscious effort to address ${data.name} next time.`,
+                        pillarId: pid,
+                        category: currentCategory
+                    });
+                }
+            }
+        }
+    }
+
+    // 4. Trend detection (first half vs second half)
+    if (sorted.length >= 6) {
+        const midpoint = Math.floor(sorted.length / 2);
+        const recentHalf = sorted.slice(0, midpoint);
+        const olderHalf = sorted.slice(midpoint);
+        const recentAvg = recentHalf.reduce((sum, s) => sum + s.totalScore, 0) / recentHalf.length;
+        const olderAvg = olderHalf.reduce((sum, s) => sum + s.totalScore, 0) / olderHalf.length;
+        const roundedRecent = Math.round(recentAvg * 10) / 10;
+        const roundedOlder = Math.round(olderAvg * 10) / 10;
+
+        if (recentAvg < olderAvg - 1) {
+            warnings.push({
+                type: 'declining_trend',
+                severity: 'warning',
+                icon: '📉',
+                title: 'Declining decision quality',
+                message: `Your recent decisions average ${roundedRecent > 0 ? '+' : ''}${roundedRecent} vs ${roundedOlder > 0 ? '+' : ''}${roundedOlder} earlier. Something may be affecting your process — stress, time pressure, or fatigue.`
+            });
+        } else if (recentAvg > olderAvg + 1) {
+            warnings.push({
+                type: 'improving_trend',
+                severity: 'info',
+                icon: '📈',
+                title: 'Your decisions are improving!',
+                message: `Recent decisions average ${roundedRecent > 0 ? '+' : ''}${roundedRecent} vs ${roundedOlder > 0 ? '+' : ''}${roundedOlder} earlier. Your self-awareness is paying off.`
+            });
+        }
+    }
+
+    // 5. Streak detection
+    if (sorted.length >= 3) {
+        const streakScores = sorted.slice(0, 5).map(s => s.totalScore);
+        const badStreak = streakScores.filter(s => s <= 0).length;
+        const goodStreak = streakScores.filter(s => s >= 2).length;
+
+        if (badStreak >= 3) {
+            warnings.push({
+                type: 'streak',
+                severity: 'critical',
+                icon: '🛑',
+                title: 'Multiple poor decisions in a row',
+                message: `Your last ${badStreak} decisions scored ≤0. This is a pattern, not bad luck. Consider stepping back from major decisions this week and reflecting on what's driving it.`
+            });
+        } else if (goodStreak >= 3) {
+            warnings.push({
+                type: 'streak',
+                severity: 'info',
+                icon: '🔥',
+                title: 'You\'re on a great streak!',
+                message: `Your last ${goodStreak} decisions all scored +2 or better. Your decision process is consistently strong right now.`
+            });
+        }
+    }
+
+    const severityOrder: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+    return warnings.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 }

@@ -102,3 +102,13 @@ export interface DecisionProfile {
     strengths: string[];
     weaknesses: string[];
 }
+
+export interface PatternWarning {
+    type: 'recurring_weakness' | 'emotion_correlation' | 'category_blindspot' | 'declining_trend' | 'improving_trend' | 'streak';
+    severity: 'info' | 'warning' | 'critical';
+    icon: string;
+    title: string;
+    message: string;
+    pillarId?: string;
+    category?: DecisionCategory;
+}
