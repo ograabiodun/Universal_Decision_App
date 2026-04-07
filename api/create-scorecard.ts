@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { v4 as uuidv4 } from 'uuid';
 import { getDatabase } from './lib/mongodb';
-import { getVerdict } from './lib/scoring';
+import { getUser } from './lib/auth';
+import { calculateWeightedScore, getVerdict } from './lib/scoring';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -9,47 +10,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const scorecard = req.body;
+        const { category, title, scores, isPreDecision } = req.body;
 
-        // Validate scorecard
-        if (!validateScorecard(scorecard)) {
+        if (!category || !title || !scores || !Array.isArray(scores) || scores.length !== 4) {
             return res.status(400).json({ error: 'Invalid scorecard data' });
         }
 
-        // Add metadata
-        scorecard.id = uuidv4();
-        scorecard.createdAt = new Date().toISOString();
-        scorecard.userId = req.headers['x-user-id'] || 'anonymous';
+        for (const s of scores) {
+            if (!s.pillarId || typeof s.score !== 'number' || s.score < 1 || s.score > 5) {
+                return res.status(400).json({ error: 'Each score must have pillarId and score (1-5)' });
+            }
+        }
 
-        // Calculate total score
-        scorecard.totalScore = scorecard.scores.reduce(
-            (sum: number, s: any) => sum + s.score,
-            0
-        );
+        const user = await getUser(req);
+        const userId = user?.userId || 'anonymous';
 
-        // Determine verdict
-        scorecard.verdict = getVerdict(scorecard.totalScore);
+        const sanitizedScores = scores.map((s: any) => ({
+            pillarId: String(s.pillarId),
+            pillarName: String(s.pillarName || s.pillarId),
+            score: Number(s.score),
+            notes: String(s.notes || '')
+        }));
 
-        // Save to MongoDB
+        const totalScore = sanitizedScores.reduce((sum: number, s: any) => sum + s.score, 0);
+        const weightedScore = calculateWeightedScore(sanitizedScores, category);
+        const verdict = getVerdict(weightedScore);
+
+        const scorecard = {
+            id: uuidv4(),
+            userId,
+            category: String(category),
+            title: String(title),
+            scores: sanitizedScores,
+            totalScore,
+            weightedScore,
+            verdict,
+            isPreDecision: Boolean(isPreDecision),
+            createdAt: new Date().toISOString()
+        };
+
         const db = await getDatabase();
-        const result = await db.collection('scorecards').insertOne(scorecard);
+        await db.collection('scorecards').insertOne(scorecard);
 
-        console.log(`Created scorecard ${scorecard.id}`);
-
-        return res.status(201).json({ ...scorecard, _id: result.insertedId });
+        return res.status(201).json(scorecard);
     } catch (error: any) {
         console.error('Error creating scorecard:', error);
-        const message = error?.message || 'Internal server error';
-        return res.status(500).json({ error: message });
+        return res.status(500).json({ error: error.message || 'Internal server error' });
     }
-}
-
-function validateScorecard(scorecard: any): boolean {
-    return (
-        scorecard &&
-        scorecard.category &&
-        scorecard.scores &&
-        Array.isArray(scorecard.scores) &&
-        scorecard.scores.length === 4
-    );
 }
