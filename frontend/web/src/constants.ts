@@ -99,19 +99,19 @@ export function getVerdictFromTotal(totalScore: number): VerdictInfo {
         recommendation: 'Address the weaker pillars before finalizing. A small pause to shore up weak spots could significantly improve your outcome.'
     };
     if (totalScore === 0) return {
-        label: 'Borderline', color: '#F59E0B', icon: '⚠️', band: 'borderline',
-        description: 'Your decision process is evenly split between strengths and weaknesses. The risk of a poor outcome is real without improvement.',
+        label: 'Even Ground', color: '#F59E0B', icon: '⚖️', band: 'borderline',
+        description: 'Your decision process has a mix of strengths and areas to develop. With a small shift, you can tip the balance in your favor.',
         recommendation: 'Pause if possible. Focus on the pillars marked "None" — improving even one would shift this into positive territory.'
     };
     if (totalScore >= -2) return {
-        label: 'Poor', color: '#F97316', icon: '🚩', band: 'poor',
-        description: 'Multiple pillars are weak. This decision is being made without adequate preparation, research, timing, or emotional clarity.',
-        recommendation: 'Strongly consider delaying this decision. Identify which pillars you can improve most quickly and work on those first.'
+        label: 'Learning Moment', color: '#F97316', icon: '🌱', band: 'poor',
+        description: 'Several areas need attention. This is valuable data — clear patterns show exactly where to focus your growth.',
+        recommendation: 'Consider pausing this decision. Identify which pillars you can improve most quickly and work on those first.'
     };
     return {
-        label: 'Critical', color: '#EF4444', icon: '💥', band: 'critical',
-        description: 'Nearly all pillars show significant gaps. This decision carries very high risk of regret and is likely driven by impulse or pressure.',
-        recommendation: 'Stop and step back. This is not the time to decide. Seek outside perspective, do research, and revisit when you feel calmer.'
+        label: 'Growth Opportunity', color: '#EF4444', icon: '💪', band: 'critical',
+        description: 'Most pillars show room for development. Every strong decision-maker built their skills from moments like this.',
+        recommendation: 'Step back and give yourself space. Seek outside perspective, do research, and revisit when you feel calmer.'
     };
 }
 

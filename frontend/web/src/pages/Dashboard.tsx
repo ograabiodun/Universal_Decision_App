@@ -17,9 +17,9 @@ interface DashboardProps {
 const verdictOptions = [
     { value: 'excellent', label: '🌟 Excellent' },
     { value: 'acceptable', label: '✅ Acceptable' },
-    { value: 'borderline', label: '⚠️ Borderline' },
-    { value: 'poor', label: '🔻 Poor' },
-    { value: 'critical', label: '🚨 Critical' }
+    { value: 'borderline', label: '⚖️ Even Ground' },
+    { value: 'poor', label: '🌱 Learning Moment' },
+    { value: 'critical', label: '💪 Growth Opportunity' }
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
