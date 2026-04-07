@@ -37,9 +37,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log(`Created scorecard ${scorecard.id}`);
 
         return res.status(201).json({ ...scorecard, _id: result.insertedId });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating scorecard:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
     }
 }
 
