@@ -83,8 +83,10 @@ export const DecisionScorecard: React.FC = () => {
         pillars.reduce((acc, p) => ({ ...acc, [p.id]: { score: 0, notes: '' } }), {})
     );
     const [isPreDecision, setIsPreDecision] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleScoreChange = (pillarId: string, value: string) => {
+    const handleScoreChange
         setScores(prev => ({
             ...prev,
             [pillarId]: { ...prev[pillarId], score: parseInt(value) }
@@ -122,6 +124,9 @@ export const DecisionScorecard: React.FC = () => {
             isPreDecision
         };
 
+        setSaving(true);
+        setError(null);
+
         try {
             const response = await fetch('/api/create-scorecard', {
                 method: 'POST',
@@ -132,11 +137,16 @@ export const DecisionScorecard: React.FC = () => {
             });
 
             if (response.ok) {
-                // Show success and redirect to results
                 setActiveStep(3);
+            } else {
+                const data = await response.json().catch(() => null);
+                setError(data?.error || `Server returned ${response.status}`);
             }
-        } catch (error) {
-            console.error('Error saving scorecard:', error);
+        } catch (err: any) {
+            console.error('Error saving scorecard:', err);
+            setError(err.message || 'Network error — could not reach the server');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -332,12 +342,18 @@ export const DecisionScorecard: React.FC = () => {
                         </Box>
                     ))}
 
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {error}
+                        </Alert>
+                    )}
+
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button onClick={() => setActiveStep(1)}>
+                        <Button onClick={() => setActiveStep(1)} disabled={saving}>
                             Back
                         </Button>
-                        <Button variant="contained" onClick={handleSubmit}>
-                            Save Scorecard
+                        <Button variant="contained" onClick={handleSubmit} disabled={saving}>
+                            {saving ? 'Saving...' : 'Save Scorecard'}
                         </Button>
                     </Box>
                 </Box>
