@@ -42,9 +42,16 @@ export const api = {
     deleteScorecard: (id: string) =>
         request<any>(`/api/delete-scorecard?id=${id}`, { method: 'DELETE' }),
 
-    getAiInsights: (scorecardId: string, scores: any[]) =>
+    getAiInsights: (scorecardId: string, scorecard: any) =>
         request<any>('/api/ai-insights', {
             method: 'POST',
-            body: JSON.stringify({ scorecardId, scores })
+            body: JSON.stringify({
+                scorecardId,
+                scores: scorecard.scores,
+                category: scorecard.category,
+                title: scorecard.title,
+                emotionBefore: scorecard.emotionBefore,
+                isPreDecision: scorecard.isPreDecision
+            })
         })
 };

@@ -37,6 +37,7 @@ export interface Scorecard {
     isPreDecision: boolean;
     emotionBefore?: EmotionEntry;
     aiInsights?: string;
+    ruleInsights?: string[];
     createdAt: string;
     updatedAt?: string;
 }
@@ -58,4 +59,46 @@ export interface AuthUser {
     userId: string;
     email: string;
     token: string;
+}
+
+export interface VerdictInfo {
+    label: string;
+    color: string;
+    icon: string;
+    description: string;
+    recommendation: string;
+    band: 'excellent' | 'acceptable' | 'borderline' | 'poor' | 'critical';
+}
+
+export interface PillarFeedback {
+    pillarId: string;
+    pillarName: string;
+    level: ScoreLevel;
+    feedback: string;
+    actionItem: string;
+}
+
+export interface CategoryAnalytics {
+    category: DecisionCategory;
+    label: string;
+    icon: string;
+    color: string;
+    count: number;
+    avgScore: number;
+    strongestPillar: string;
+    weakestPillar: string;
+}
+
+export interface DecisionProfile {
+    totalDecisions: number;
+    overallAvgScore: number;
+    strongestCategory: CategoryAnalytics | null;
+    weakestCategory: CategoryAnalytics | null;
+    categoryBreakdown: CategoryAnalytics[];
+    pillarAverages: { pillarId: string; pillarName: string; avg: number; level: ScoreLevel }[];
+    dominantEmotions: { emotionId: string; label: string; icon: string; count: number }[];
+    profileType: string;
+    profileDescription: string;
+    strengths: string[];
+    weaknesses: string[];
 }

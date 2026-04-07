@@ -54,9 +54,17 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ totalScore, size = '
             <Typography variant="h6" sx={{ color: verdict.color }}>
                 {verdict.icon} {verdict.label}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-                Score range: -4 to +4
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 420, mx: 'auto', lineHeight: 1.6 }}>
+                {verdict.description}
             </Typography>
+            <Box sx={{
+                mt: 1.5, p: 1.5, bgcolor: `${verdict.color}12`, borderRadius: 1,
+                border: `1px solid ${verdict.color}30`, maxWidth: 420, mx: 'auto'
+            }}>
+                <Typography variant="body2" fontWeight={600} sx={{ color: verdict.color }}>
+                    💡 {verdict.recommendation}
+                </Typography>
+            </Box>
         </Box>
     );
 };

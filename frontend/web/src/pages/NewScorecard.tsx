@@ -4,9 +4,9 @@ import {
     Box, Stepper, Step, StepLabel, Button, Typography, Card, CardContent,
     TextField, Alert, Chip, ToggleButton, ToggleButtonGroup, Paper, Slider
 } from '@mui/material';
-import { pillars, categories, emotions, getVerdictFromTotal, getLevelLabel } from '../constants';
+import { pillars, categories, emotions, getVerdictFromTotal, getLevelLabel, generateRuleBasedInsights, getPillarFeedback } from '../constants';
 import { ScoreDisplay } from '../components/ScoreDisplay';
-import { ScoreLevel, ScoreValue, EmotionEntry } from '../types';
+import { ScoreLevel, ScoreValue, EmotionEntry, DecisionCategory } from '../types';
 import { api } from '../api/client';
 
 interface PillarState {
@@ -369,6 +369,30 @@ export const NewScorecard: React.FC = () => {
                                     </Typography>
                                 </Box>
                             )}
+                        </CardContent>
+                    </Card>
+
+                    <Card sx={{ mb: 3, bgcolor: '#f0f7ff' }}>
+                        <CardContent>
+                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                                💡 Quick Insights
+                            </Typography>
+                            {generateRuleBasedInsights(
+                                Object.entries(scores).map(([pillarId, data]) => ({
+                                    pillarId,
+                                    pillarName: pillars.find(p => p.id === pillarId)?.name || pillarId,
+                                    score: data.score as ScoreValue,
+                                    level: data.level as ScoreLevel,
+                                    notes: data.notes
+                                })),
+                                category as DecisionCategory,
+                                emotionBefore.emotions.length > 0 ? emotionBefore : undefined,
+                                isPreDecision
+                            ).map((insight, i) => (
+                                <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                                    <Typography variant="body2">{insight}</Typography>
+                                </Box>
+                            ))}
                         </CardContent>
                     </Card>
 

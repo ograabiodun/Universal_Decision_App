@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { v4 as uuidv4 } from 'uuid';
 import { getDatabase } from './lib/mongodb';
 import { getUser } from './lib/auth';
-import { calculateTotalScore, getVerdict } from './lib/scoring';
+import { calculateTotalScore, getVerdict, generateServerInsights } from './lib/scoring';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -40,6 +40,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const totalScore = calculateTotalScore(sanitizedScores);
         const verdict = getVerdict(totalScore);
+        const ruleInsights = generateServerInsights(
+            sanitizedScores,
+            String(category),
+            emotionBefore && Array.isArray(emotionBefore.emotions) && emotionBefore.emotions.length > 0
+                ? { emotions: emotionBefore.emotions.map((e: any) => String(e)), intensity: Number(emotionBefore.intensity) || 5 }
+                : undefined,
+            Boolean(isPreDecision)
+        );
 
         const scorecard: any = {
             id: uuidv4(),
@@ -49,6 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             scores: sanitizedScores,
             totalScore,
             verdict,
+            ruleInsights,
             isPreDecision: Boolean(isPreDecision),
             createdAt: new Date().toISOString()
         };

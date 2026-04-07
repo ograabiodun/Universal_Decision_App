@@ -4,9 +4,9 @@ import {
     Box, Typography, Card, CardContent, Button, Alert, CircularProgress,
     Chip, Dialog, DialogTitle, DialogContent, DialogActions, Divider
 } from '@mui/material';
-import { Scorecard } from '../types';
+import { Scorecard, DecisionCategory } from '../types';
 import { api } from '../api/client';
-import { categories, emotions, getLevelLabel } from '../constants';
+import { categories, emotions, getLevelLabel, getPillarFeedback, generateRuleBasedInsights } from '../constants';
 import { ScoreDisplay } from '../components/ScoreDisplay';
 
 export const ScorecardDetail: React.FC = () => {
@@ -55,7 +55,7 @@ export const ScorecardDetail: React.FC = () => {
         if (!scorecard) return;
         setAiLoading(true);
         try {
-            const result = await api.getAiInsights(scorecard.id, scorecard.scores);
+            const result = await api.getAiInsights(scorecard.id, scorecard);
             setScorecard({ ...scorecard, aiInsights: result.insights });
         } catch (err: any) {
             setError(err.message);
@@ -117,9 +117,10 @@ export const ScorecardDetail: React.FC = () => {
 
                     <Divider sx={{ my: 2 }} />
 
-                    <Typography variant="subtitle2" gutterBottom>Pillar Scores</Typography>
+                    <Typography variant="subtitle2" gutterBottom>Pillar Breakdown</Typography>
                     {scorecard.scores.map(s => {
                         const levelInfo = s.level ? getLevelLabel(s.level) : null;
+                        const feedback = s.level ? getPillarFeedback(s.pillarId, s.pillarName, s.level) : null;
 
                         return (
                             <Box key={s.pillarId} sx={{ mb: 2, p: 2, bgcolor: '#f5f7fa', borderRadius: 1 }}>
@@ -135,6 +136,18 @@ export const ScorecardDetail: React.FC = () => {
                                         />
                                     )}
                                 </Box>
+                                {feedback && (
+                                    <Box sx={{ mt: 1 }}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                            {feedback.feedback}
+                                        </Typography>
+                                        {s.level !== 'good' && (
+                                            <Typography variant="body2" sx={{ color: '#6366F1', fontWeight: 500 }}>
+                                                → {feedback.actionItem}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                )}
                                 {s.notes && (
                                     <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
                                         &ldquo;{s.notes}&rdquo;
@@ -166,9 +179,28 @@ export const ScorecardDetail: React.FC = () => {
                 </CardContent>
             </Card>
 
-            <Card sx={{ mb: 3, bgcolor: scorecard.aiInsights ? '#f0f7ff' : undefined }}>
+            <Card sx={{ mb: 3, bgcolor: '#f0f7ff' }}>
                 <CardContent>
-                    <Typography variant="subtitle2" gutterBottom>💡 AI Insights</Typography>
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>💡 Decision Insights</Typography>
+                    {(() => {
+                        const ruleInsights = scorecard.ruleInsights || generateRuleBasedInsights(
+                            scorecard.scores,
+                            scorecard.category as DecisionCategory,
+                            scorecard.emotionBefore,
+                            scorecard.isPreDecision
+                        );
+                        return ruleInsights.map((insight, i) => (
+                            <Box key={i} sx={{ mb: 1.5, p: 1.5, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                                <Typography variant="body2">{insight}</Typography>
+                            </Box>
+                        ));
+                    })()}
+                </CardContent>
+            </Card>
+
+            <Card sx={{ mb: 3, bgcolor: scorecard.aiInsights ? '#f5f0ff' : undefined }}>
+                <CardContent>
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>🤖 AI-Powered Insights</Typography>
                     {scorecard.aiInsights ? (
                         <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
                             {scorecard.aiInsights}
@@ -176,14 +208,14 @@ export const ScorecardDetail: React.FC = () => {
                     ) : (
                         <Box>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Get personalized insights powered by AI to improve future decisions.
+                                Get deeper, personalized analysis powered by AI.
                             </Typography>
                             <Button
                                 variant="outlined"
                                 onClick={handleGetInsights}
                                 disabled={aiLoading}
                             >
-                                {aiLoading ? 'Generating...' : 'Generate AI Insights'}
+                                {aiLoading ? 'Generating...' : 'Generate AI Analysis'}
                             </Button>
                         </Box>
                     )}
