@@ -30,6 +30,25 @@ export const NewScorecard: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [history, setHistory] = useState<Scorecard[]>([]);
     const [categoryWarnings, setCategoryWarnings] = useState<PatternWarning[]>([]);
+    const [savedScorecard, setSavedScorecard] = useState<Scorecard | null>(null);
+
+    const getEmotionInsight = (): string | null => {
+        if (emotionBefore.emotions.length === 0) return null;
+        const negativeEmotions = ['anxious', 'pressured', 'fearful'];
+        const hasNegative = emotionBefore.emotions.some(e => negativeEmotions.includes(e));
+        const hasCalm = emotionBefore.emotions.includes('calm');
+        const hasConfident = emotionBefore.emotions.includes('confident');
+        if (hasNegative && emotionBefore.intensity >= 7) {
+            return 'High emotional intensity detected. Consider whether now is the best time to finalize this decision.';
+        }
+        if (hasNegative) {
+            return 'Noticing these feelings helps you separate emotions from facts. Take your time.';
+        }
+        if (hasCalm || hasConfident) {
+            return 'You\'re in a good headspace for decision-making. Clear thinking leads to better outcomes.';
+        }
+        return 'Awareness of your emotional state is the first step to making better decisions.';
+    };
 
     useEffect(() => {
         api.getScorecards({ limit: 50 }).then(res => setHistory(res.data)).catch(() => {});
@@ -90,7 +109,8 @@ export const NewScorecard: React.FC = () => {
                 }))
             };
             const result = await api.createScorecard(scorecardData);
-            navigate(`/scorecard/${result.id}`, { state: { scorecard: result } });
+            setSavedScorecard(result);
+            setActiveStep(4);
         } catch (err: any) {
             setError(err.message || 'Failed to save scorecard');
         } finally {
@@ -109,6 +129,7 @@ export const NewScorecard: React.FC = () => {
                 <Step><StepLabel>Score Pillars</StepLabel></Step>
                 <Step><StepLabel>Emotional Check-in</StepLabel></Step>
                 <Step><StepLabel>Review & Save</StepLabel></Step>
+                <Step><StepLabel>Done</StepLabel></Step>
             </Stepper>
 
             {activeStep === 0 && (
@@ -327,6 +348,17 @@ export const NewScorecard: React.FC = () => {
                             </Box>
                         )}
 
+                        {emotionBefore.emotions.length > 0 && getEmotionInsight() && (
+                            <Box sx={{
+                                p: 2, bgcolor: '#F3F4F6', borderRadius: 2, mb: 2,
+                                animation: 'fadeInUp 0.3s ease'
+                            }}>
+                                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                                    💡 {getEmotionInsight()}
+                                </Typography>
+                            </Box>
+                        )}
+
                         <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                             <Button onClick={() => setActiveStep(1)}>Back</Button>
                             <Button
@@ -443,6 +475,71 @@ export const NewScorecard: React.FC = () => {
                     </Box>
                 </Box>
             )}
+
+            {activeStep === 4 && savedScorecard && (() => {
+                const verdict = getVerdictFromTotal(savedScorecard.totalScore);
+                return (
+                    <Box sx={{ textAlign: 'center', animation: 'fadeInUp 0.5s ease' }}>
+                        <Box sx={{
+                            width: 80, height: 80, borderRadius: '50%',
+                            bgcolor: `${verdict.color}15`, border: `3px solid ${verdict.color}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            mx: 'auto', mb: 2, animation: 'scaleIn 0.4s ease'
+                        }}>
+                            <Typography variant="h3">{verdict.icon}</Typography>
+                        </Box>
+
+                        <Typography variant="h5" fontWeight={700} gutterBottom>
+                            ✓ Decision Saved
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                            {savedScorecard.title}
+                        </Typography>
+                        <Chip
+                            label={`${verdict.label} · Score: ${savedScorecard.totalScore > 0 ? '+' : ''}${savedScorecard.totalScore}`}
+                            sx={{ bgcolor: `${verdict.color}20`, color: verdict.color, fontWeight: 600, mb: 3 }}
+                        />
+
+                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto', mb: 4 }}>
+                            {verdict.recommendation}
+                        </Typography>
+
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            What would you like to do next?
+                        </Typography>
+                        <Box sx={{
+                            display: 'flex', flexDirection: { xs: 'column', sm: 'row' },
+                            gap: 2, justifyContent: 'center', mt: 2
+                        }}>
+                            <Button
+                                variant="contained" size="large"
+                                onClick={() => navigate(`/scorecard/${savedScorecard.id}`, { state: { scorecard: savedScorecard } })}
+                            >
+                                📊 View Full Details
+                            </Button>
+                            <Button
+                                variant="outlined" size="large"
+                                onClick={() => {
+                                    setSavedScorecard(null);
+                                    setActiveStep(0);
+                                    setCategory('');
+                                    setTitle('');
+                                    setScores(pillars.reduce((acc, p) => ({ ...acc, [p.id]: { score: null, level: null, notes: '' } }), {}));
+                                    setEmotionBefore({ emotions: [], intensity: 5 });
+                                }}
+                            >
+                                ➕ New Decision
+                            </Button>
+                            <Button
+                                variant="outlined" size="large"
+                                onClick={() => navigate('/')}
+                            >
+                                🏠 Dashboard
+                            </Button>
+                        </Box>
+                    </Box>
+                );
+            })()}
         </Box>
     );
 };

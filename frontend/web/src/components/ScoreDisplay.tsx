@@ -33,7 +33,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ totalScore, size = '
     }
 
     return (
-        <Box sx={{ textAlign: 'center', py: 2 }}>
+        <Box sx={{ textAlign: 'center', py: 2, animation: 'fadeInUp 0.5s ease' }}>
             <Box
                 sx={{
                     width: 120, height: 120, borderRadius: '50%',
