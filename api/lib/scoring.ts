@@ -76,5 +76,26 @@ export function generateServerInsights(
         insights.push('🔍 This post-decision review builds self-awareness. Note which pillars were weakest for future decisions.');
     }
 
-    return insights.slice(0, 4);
+    // Mode-specific pillar emphasis
+    if (isPreDecision) {
+        const planningScore = scores.find(s => s.pillarId === 'planning');
+        const researchScore = scores.find(s => s.pillarId === 'research');
+        if (planningScore && planningScore.level !== 'good') {
+            insights.push('📋 Pre-decision tip: Planning carries extra weight before you commit. A written plan with budget and timeline dramatically reduces regret.');
+        }
+        if (researchScore && researchScore.level === 'none') {
+            insights.push('🔍 You still have time to research. Spending even 20 minutes comparing alternatives could change your entire outlook.');
+        }
+    } else if (isPreDecision === false) {
+        const emotionalScore = scores.find(s => s.pillarId === 'emotional');
+        const timingScore = scores.find(s => s.pillarId === 'timing');
+        if (emotionalScore && emotionalScore.level !== 'good') {
+            insights.push('🧘 Post-decision reflection: Emotional control is hardest to improve in the moment. Build in a cooling-off period next time.');
+        }
+        if (timingScore && timingScore.level === 'none') {
+            insights.push('⏰ Timing was a key issue. For future decisions, set a personal deadline in advance so urgency doesn\'t force your hand.');
+        }
+    }
+
+    return insights.slice(0, 5);
 }

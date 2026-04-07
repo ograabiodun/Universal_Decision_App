@@ -218,5 +218,26 @@ export function generateRuleBasedInsights(
         insights.push('\u{1F50D} This post-decision review builds self-awareness. Note which pillars were weakest — these are patterns to watch in future decisions.');
     }
 
-    return insights.slice(0, 4);
+    // Mode-specific pillar emphasis
+    if (isPreDecision) {
+        const planningScore = scores.find(s => s.pillarId === 'planning');
+        const researchScore = scores.find(s => s.pillarId === 'research');
+        if (planningScore && planningScore.level !== 'good') {
+            insights.push('\u{1F4CB} Pre-decision tip: Planning carries extra weight before you commit. A written plan with budget and timeline dramatically reduces regret.');
+        }
+        if (researchScore && researchScore.level === 'none') {
+            insights.push('\u{1F50D} You still have time to research. Spending even 20 minutes comparing alternatives could change your entire outlook on this decision.');
+        }
+    } else {
+        const emotionalScore = scores.find(s => s.pillarId === 'emotional');
+        const timingScore = scores.find(s => s.pillarId === 'timing');
+        if (emotionalScore && emotionalScore.level !== 'good') {
+            insights.push('\u{1F9D8} Post-decision reflection: Emotional control is the hardest pillar to improve in the moment. For next time, build in a mandatory cooling-off period.');
+        }
+        if (timingScore && timingScore.level === 'none') {
+            insights.push('\u23F0 Timing was a key issue. For future similar decisions, set a personal deadline in advance so urgency doesn\'t force your hand.');
+        }
+    }
+
+    return insights.slice(0, 5);
 }

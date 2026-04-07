@@ -23,10 +23,10 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-    login: (email: string) =>
+    login: (email: string, password: string, mode: 'login' | 'register' = 'login') =>
         request<{ userId: string; email: string; token: string }>('/api/auth/login', {
             method: 'POST',
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ email, password, mode })
         }),
 
     createScorecard: (data: any) =>
@@ -40,6 +40,7 @@ export const api = {
         if (filters?.category) params.set('category', filters.category);
         if (filters?.search) params.set('search', filters.search);
         if (filters?.verdict) params.set('verdict', filters.verdict);
+        if (filters?.mode) params.set('mode', filters.mode);
         if (filters?.page) params.set('page', String(filters.page));
         if (filters?.limit) params.set('limit', String(filters.limit));
         const qs = params.toString();

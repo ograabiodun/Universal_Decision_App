@@ -312,7 +312,7 @@ export const About: React.FC = () => {
             {/* About the Creator */}
             <Section title="About the Creator" icon="👤">
                 <Typography variant="body1" sx={{ mb: 1 }}>
-                    Built by <strong>Ograa Biodun</strong> — Software QA Engineer, Tech Support Specialist, and LLM Tester.
+                    Built with GitHub Copilot by <strong>Mudi</strong> — Software QA Tester, Tech Support Specialist, and LLM Tester.
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     With a background spanning quality assurance, technical support, and large language model evaluation,

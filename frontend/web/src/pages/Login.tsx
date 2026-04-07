@@ -1,26 +1,28 @@
 import React, { useState } from 'react';
 import {
-    Box, Card, CardContent, Typography, TextField, Button, Alert, Divider
+    Box, Card, CardContent, Typography, TextField, Button, Alert, Divider, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 
 interface LoginProps {
-    onLogin: (email: string) => Promise<any>;
+    onLogin: (email: string, password: string, mode: 'login' | 'register') => Promise<any>;
     onGuest: () => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [mode, setMode] = useState<'login' | 'register'>('login');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email.trim()) return;
+        if (!email.trim() || !password) return;
 
         setLoading(true);
         setError(null);
         try {
-            await onLogin(email.trim().toLowerCase());
+            await onLogin(email.trim().toLowerCase(), password, mode);
         } catch (err: any) {
             setError(err.message || 'Login failed');
         } finally {
@@ -45,6 +47,18 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
                         </Typography>
                     </Box>
 
+                    <ToggleButtonGroup
+                        value={mode}
+                        exclusive
+                        onChange={(_, v) => { if (v) { setMode(v); setError(null); } }}
+                        fullWidth
+                        size="small"
+                        sx={{ mb: 3 }}
+                    >
+                        <ToggleButton value="login">Sign In</ToggleButton>
+                        <ToggleButton value="register">Sign Up</ToggleButton>
+                    </ToggleButtonGroup>
+
                     <form onSubmit={handleSubmit}>
                         <TextField
                             fullWidth
@@ -57,6 +71,16 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
                             autoFocus
                         />
 
+                        <TextField
+                            fullWidth
+                            type="password"
+                            label="Password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder={mode === 'register' ? 'At least 6 characters' : 'Enter your password'}
+                            sx={{ mb: 2 }}
+                        />
+
                         {error && (
                             <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
                         )}
@@ -65,10 +89,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
                             fullWidth
                             variant="contained"
                             type="submit"
-                            disabled={!email.trim() || loading}
+                            disabled={!email.trim() || !password || password.length < 6 || loading}
                             size="large"
                         >
-                            {loading ? 'Signing in...' : 'Continue with Email'}
+                            {loading ? (mode === 'register' ? 'Creating account...' : 'Signing in...') : (mode === 'register' ? 'Create Account' : 'Sign In')}
                         </Button>
                     </form>
 
@@ -84,8 +108,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
                     </Button>
 
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
-                        Sign in to save and track your decision history.
-                        Guest mode lets you create scorecards but cannot retrieve history.
+                        {mode === 'register'
+                            ? 'Create an account to save and track your decision history.'
+                            : 'Sign in to access your saved scorecards. Guest mode lets you try the app without an account.'}
                     </Typography>
                 </CardContent>
             </Card>

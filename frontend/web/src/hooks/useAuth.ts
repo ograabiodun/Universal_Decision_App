@@ -19,8 +19,8 @@ export function useAuth() {
         setLoading(false);
     }, []);
 
-    const login = useCallback(async (email: string) => {
-        const data = await api.login(email);
+    const login = useCallback(async (email: string, password: string, mode: 'login' | 'register' = 'login') => {
+        const data = await api.login(email, password, mode);
         const authUser: AuthUser = {
             userId: data.userId,
             email: data.email,

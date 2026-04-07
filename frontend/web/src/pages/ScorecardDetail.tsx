@@ -43,6 +43,7 @@ export const ScorecardDetail: React.FC = () => {
     const [editScores, setEditScores] = useState<Record<string, PillarState>>({});
     const [editSaving, setEditSaving] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [linkedScorecard, setLinkedScorecard] = useState<Scorecard | null>(null);
 
     const handleShareSummary = () => {
         if (!scorecard) return;
@@ -75,6 +76,14 @@ export const ScorecardDetail: React.FC = () => {
             loadScorecard();
         }
     }, [id]);
+
+    useEffect(() => {
+        if (scorecard?.linkedScorecardId) {
+            api.getScorecard(scorecard.linkedScorecardId)
+                .then(data => setLinkedScorecard(data))
+                .catch(() => {});
+        }
+    }, [scorecard?.linkedScorecardId]);
 
     const loadScorecard = async () => {
         try {
@@ -491,6 +500,84 @@ export const ScorecardDetail: React.FC = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Re-audit as Post-decision (for pre-decision scorecards) */}
+            {scorecard.isPreDecision && !scorecard.linkedScorecardId && (
+                <Card sx={{ mb: 3, bgcolor: '#f8f7ff', border: '1px solid #6366F120' }}>
+                    <CardContent>
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            🔄 Follow Up: Re-audit as Post-decision
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Now that time has passed, create a post-decision review linked to this audit.
+                            You&apos;ll see a side-by-side comparison of how your assessment changed.
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            onClick={() => navigate('/new', { state: { linkedScorecard: scorecard } })}
+                        >
+                            🔍 Create Post-Decision Review
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Linked Comparison (pre vs post) */}
+            {linkedScorecard && (
+                <Card sx={{ mb: 3, bgcolor: '#faf5ff', border: '1px solid #8B5CF620' }}>
+                    <CardContent>
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            🔗 Pre vs. Post Comparison
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Linked {scorecard.isPreDecision ? 'post' : 'pre'}-decision audit: &ldquo;{linkedScorecard.title}&rdquo;
+                            ({new Date(linkedScorecard.createdAt).toLocaleDateString()})
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+                            <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    {scorecard.isPreDecision ? '🔮 Pre-decision (this)' : '🔍 Post-decision (this)'}
+                                </Typography>
+                                <Typography variant="h5" fontWeight={700} sx={{ color: getVerdictFromTotal(scorecard.totalScore).color }}>
+                                    {scorecard.totalScore > 0 ? '+' : ''}{scorecard.totalScore}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    {linkedScorecard.isPreDecision ? '🔮 Pre-decision (linked)' : '🔍 Post-decision (linked)'}
+                                </Typography>
+                                <Typography variant="h5" fontWeight={700} sx={{ color: getVerdictFromTotal(linkedScorecard.totalScore).color }}>
+                                    {linkedScorecard.totalScore > 0 ? '+' : ''}{linkedScorecard.totalScore}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        {pillars.map(pillar => {
+                            const thisScore = scorecard.scores.find(s => s.pillarId === pillar.id);
+                            const otherScore = linkedScorecard.scores.find(s => s.pillarId === pillar.id);
+                            const thisLevel = thisScore?.level ? getLevelLabel(thisScore.level) : null;
+                            const otherLevel = otherScore?.level ? getLevelLabel(otherScore.level) : null;
+                            const changed = thisScore?.score !== otherScore?.score;
+                            return (
+                                <Box key={pillar.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, p: 1, bgcolor: changed ? '#FEF3C720' : 'transparent', borderRadius: 1 }}>
+                                    <Typography variant="body2" fontWeight={500} sx={{ flex: 1 }}>{pillar.name}</Typography>
+                                    <Chip label={`${thisLevel?.icon || '—'} ${thisLevel?.label || '—'}`} size="small" sx={{ minWidth: 80, mr: 1 }} />
+                                    <Typography variant="body2" sx={{ mx: 1 }}>→</Typography>
+                                    <Chip label={`${otherLevel?.icon || '—'} ${otherLevel?.label || '—'}`} size="small" sx={{ minWidth: 80 }} />
+                                    {changed && <Typography variant="caption" sx={{ ml: 1, color: (otherScore?.score ?? 0) > (thisScore?.score ?? 0) ? '#10B981' : '#EF4444' }}>
+                                        {(otherScore?.score ?? 0) > (thisScore?.score ?? 0) ? '↑' : '↓'}
+                                    </Typography>}
+                                </Box>
+                            );
+                        })}
+                        <Button
+                            size="small" sx={{ mt: 1 }}
+                            onClick={() => navigate(`/scorecard/${linkedScorecard.id}`)}
+                        >
+                            View Linked Audit →
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
 
             <Card sx={{ mb: 3, bgcolor: '#f0f7ff' }}>
                 <CardContent>

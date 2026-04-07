@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Stepper, Step, StepLabel, Button, Typography, Card, CardContent,
     TextField, Alert, Chip, ToggleButton, ToggleButtonGroup, Paper, Slider
@@ -18,10 +18,13 @@ interface PillarState {
 
 export const NewScorecard: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const linkedScorecard = (location.state as any)?.linkedScorecard as Scorecard | undefined;
+
     const [activeStep, setActiveStep] = useState(0);
-    const [category, setCategory] = useState('');
-    const [title, setTitle] = useState('');
-    const [isPreDecision, setIsPreDecision] = useState(true);
+    const [category, setCategory] = useState(linkedScorecard?.category || '');
+    const [title, setTitle] = useState(linkedScorecard ? `${linkedScorecard.title} (Post-review)` : '');
+    const [isPreDecision, setIsPreDecision] = useState(linkedScorecard ? false : true);
     const [scores, setScores] = useState<Record<string, PillarState>>(
         pillars.reduce((acc, p) => ({ ...acc, [p.id]: { score: null, level: null, notes: '' } }), {})
     );
@@ -95,7 +98,7 @@ export const NewScorecard: React.FC = () => {
         setSaving(true);
         setError(null);
         try {
-            const scorecardData = {
+            const scorecardData: any = {
                 category,
                 title,
                 isPreDecision,
@@ -108,6 +111,9 @@ export const NewScorecard: React.FC = () => {
                     notes: data.notes
                 }))
             };
+            if (linkedScorecard) {
+                scorecardData.linkedScorecardId = linkedScorecard.id;
+            }
             const result = await api.createScorecard(scorecardData);
             setSavedScorecard(result);
             setActiveStep(4);
@@ -135,6 +141,12 @@ export const NewScorecard: React.FC = () => {
             {activeStep === 0 && (
                 <Card>
                     <CardContent sx={{ p: 3 }}>
+                        {linkedScorecard && (
+                            <Alert severity="info" sx={{ mb: 3 }}>
+                                🔗 Creating a post-decision review linked to: &ldquo;{linkedScorecard.title}&rdquo;
+                                (Pre-decision score: {linkedScorecard.totalScore > 0 ? '+' : ''}{linkedScorecard.totalScore})
+                            </Alert>
+                        )}
                         <Typography variant="h6" gutterBottom>
                             What decision are you auditing?
                         </Typography>
@@ -503,6 +515,23 @@ export const NewScorecard: React.FC = () => {
                         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto', mb: 4 }}>
                             {verdict.recommendation}
                         </Typography>
+
+                        {savedScorecard.isPreDecision && (
+                            <Card sx={{
+                                mb: 3, mx: 'auto', maxWidth: 440,
+                                bgcolor: '#FFFBEB', border: '1px solid #F59E0B30'
+                            }}>
+                                <CardContent sx={{ py: 2 }}>
+                                    <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                                        🔔 Follow-up Reminder
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        This is a pre-decision audit. Come back after you&apos;ve decided to record the outcome
+                                        or re-audit as a post-decision review to see how your assessment changed.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                             What would you like to do next?

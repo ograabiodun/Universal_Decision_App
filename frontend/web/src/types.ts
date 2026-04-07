@@ -45,6 +45,7 @@ export interface Scorecard {
     outcome?: Outcome;
     aiInsights?: string;
     ruleInsights?: string[];
+    linkedScorecardId?: string;
     createdAt: string;
     updatedAt?: string;
 }
@@ -53,6 +54,7 @@ export interface ScorecardFilters {
     category?: DecisionCategory;
     search?: string;
     verdict?: string;
+    mode?: 'pre' | 'post';
     page?: number;
     limit?: number;
 }

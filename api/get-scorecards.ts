@@ -16,6 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const category = req.query.category as string | undefined;
         const search = req.query.search as string | undefined;
         const verdict = req.query.verdict as string | undefined;
+        const mode = req.query.mode as string | undefined;
         const page = Math.max(1, parseInt(req.query.page as string) || 1);
         const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
         const skip = (page - 1) * limit;
@@ -28,6 +29,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (verdict) {
             filter.verdict = verdict;
+        }
+
+        if (mode === 'pre') {
+            filter.isPreDecision = true;
+        } else if (mode === 'post') {
+            filter.isPreDecision = false;
         }
 
         if (search) {

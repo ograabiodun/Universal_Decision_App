@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { category, title, scores, isPreDecision, emotionBefore } = req.body;
+        const { category, title, scores, isPreDecision, emotionBefore, linkedScorecardId } = req.body;
 
         if (!category || !title || !scores || !Array.isArray(scores) || scores.length !== 4) {
             return res.status(400).json({ error: 'Invalid scorecard data' });
@@ -61,6 +61,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             isPreDecision: Boolean(isPreDecision),
             createdAt: new Date().toISOString()
         };
+
+        if (linkedScorecardId && typeof linkedScorecardId === 'string') {
+            scorecard.linkedScorecardId = linkedScorecardId;
+        }
 
         if (emotionBefore && Array.isArray(emotionBefore.emotions) && emotionBefore.emotions.length > 0) {
             scorecard.emotionBefore = {

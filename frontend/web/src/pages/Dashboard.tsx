@@ -36,6 +36,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
     // Filters
     const [filterCategory, setFilterCategory] = useState<string>('');
     const [filterVerdict, setFilterVerdict] = useState<string>('');
+    const [filterMode, setFilterMode] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchDebounce, setSearchDebounce] = useState<string>('');
 
@@ -56,7 +57,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
         setPage(1);
         setScorecards([]);
         loadScorecards(1);
-    }, [isGuest, filterCategory, filterVerdict, searchDebounce]);
+    }, [isGuest, filterCategory, filterVerdict, filterMode, searchDebounce]);
 
     // Load all scorecards once (unfiltered) for analytics
     useEffect(() => {
@@ -75,6 +76,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
             const filters: ScorecardFilters = { page: pageNum, limit: LIMIT };
             if (filterCategory) filters.category = filterCategory as DecisionCategory;
             if (filterVerdict) filters.verdict = filterVerdict;
+            if (filterMode) filters.mode = filterMode as 'pre' | 'post';
             if (searchDebounce) filters.search = searchDebounce;
 
             const result = await api.getScorecards(filters);
@@ -101,10 +103,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
     const clearFilters = () => {
         setFilterCategory('');
         setFilterVerdict('');
+        setFilterMode('');
         setSearchQuery('');
     };
 
-    const hasActiveFilters = filterCategory || filterVerdict || searchDebounce;
+    const hasActiveFilters = filterCategory || filterVerdict || filterMode || searchDebounce;
 
     const avgScore = allScorecards.length > 0
         ? Math.round(allScorecards.reduce((sum, s) => sum + (s.totalScore || 0), 0) / allScorecards.length)
@@ -114,6 +117,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
     const categoryAnalytics = buildCategoryAnalytics(allScorecards);
     const patternWarnings = detectPatterns(allScorecards);
     const hasCritical = patternWarnings.some(w => w.severity === 'critical');
+    const pendingFollowUps = allScorecards.filter(s => s.isPreDecision && !s.outcome);
 
     return (
         <Box>
@@ -173,6 +177,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                         </CardContent>
                     </Card>
                 </Box>
+            )}
+
+            {pendingFollowUps.length > 0 && (
+                <Card sx={{ mb: 4, bgcolor: '#FFFBEB', border: '1px solid #F59E0B30' }}>
+                    <CardContent>
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            🔔 Pre-Decision Follow-ups ({pendingFollowUps.length})
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            These pre-decision audits are waiting for outcome tracking or a post-decision review.
+                        </Typography>
+                        {pendingFollowUps.slice(0, 3).map(sc => {
+                            const daysSince = Math.floor((Date.now() - new Date(sc.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+                            return (
+                                <Box key={sc.id} sx={{
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                    p: 1.5, mb: 1, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7'
+                                }}>
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography variant="body2" fontWeight={600}>{sc.title}</Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {daysSince === 0 ? 'Today' : `${daysSince} day${daysSince !== 1 ? 's' : ''} ago`}
+                                        </Typography>
+                                    </Box>
+                                    <Button size="small" onClick={() => navigate(`/scorecard/${sc.id}`)}>
+                                        Follow up →
+                                    </Button>
+                                </Box>
+                            );
+                        })}
+                    </CardContent>
+                </Card>
             )}
 
             {patternWarnings.length > 0 && (
@@ -433,6 +469,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                                         variant={filterVerdict === v.value ? 'filled' : 'outlined'}
                                     />
                                 ))}
+                            </Box>
+                        </Box>
+                        <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Decision Mode</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                <Chip
+                                    size="small" label="🔮 Pre-decision"
+                                    onClick={() => setFilterMode(filterMode === 'pre' ? '' : 'pre')}
+                                    color={filterMode === 'pre' ? 'primary' : 'default'}
+                                    variant={filterMode === 'pre' ? 'filled' : 'outlined'}
+                                />
+                                <Chip
+                                    size="small" label="🔍 Post-decision"
+                                    onClick={() => setFilterMode(filterMode === 'post' ? '' : 'post')}
+                                    color={filterMode === 'post' ? 'primary' : 'default'}
+                                    variant={filterMode === 'post' ? 'filled' : 'outlined'}
+                                />
                             </Box>
                         </Box>
                     </Card>
