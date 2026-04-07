@@ -8,6 +8,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { NewScorecard } from './pages/NewScorecard';
 import { ScorecardDetail } from './pages/ScorecardDetail';
+import { About } from './pages/About';
 
 export const App: React.FC = () => {
     const { user, loading, login, loginAsGuest, logout, isGuest } = useAuth();
@@ -32,6 +33,7 @@ export const App: React.FC = () => {
                         <Route path="/" element={<Dashboard isGuest={isGuest} />} />
                         <Route path="/new" element={<NewScorecard />} />
                         <Route path="/scorecard/:id" element={<ScorecardDetail />} />
+                        <Route path="/about" element={<About />} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </Layout>

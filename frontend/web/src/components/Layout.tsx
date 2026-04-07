@@ -42,6 +42,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, isGues
                         >
                             New Scorecard
                         </Button>
+                        <Button
+                            color="inherit"
+                            onClick={() => navigate('/about')}
+                            sx={{ opacity: location.pathname === '/about' ? 1 : 0.7 }}
+                        >
+                            About
+                        </Button>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         {user && !isGuest && (
