@@ -86,7 +86,7 @@ export const DecisionScorecard: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleScoreChange
+    const handleScoreChange = (pillarId: string, value: string) => {
         setScores(prev => ({
             ...prev,
             [pillarId]: { ...prev[pillarId], score: parseInt(value) }

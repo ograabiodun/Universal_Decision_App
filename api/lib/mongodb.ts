@@ -17,7 +17,7 @@ export async function getDatabase(): Promise<Db> {
     await client.connect();
 
     cachedClient = client;
-    cachedDb = client.db('decision-audit');
+    cachedDb = client.db('DecisionHelper0');
 
     return cachedDb;
 }
