@@ -32,7 +32,7 @@ export const NewScorecard: React.FC = () => {
     const [categoryWarnings, setCategoryWarnings] = useState<PatternWarning[]>([]);
 
     useEffect(() => {
-        api.getScorecards().then(setHistory).catch(() => {});
+        api.getScorecards({ limit: 50 }).then(res => setHistory(res.data)).catch(() => {});
     }, []);
 
     useEffect(() => {

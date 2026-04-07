@@ -1,3 +1,5 @@
+import { Scorecard, ScorecardFilters, PaginatedResponse } from '../types';
+
 const getToken = (): string | null => localStorage.getItem('auth_token');
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
@@ -33,11 +35,31 @@ export const api = {
             body: JSON.stringify(data)
         }),
 
-    getScorecards: () =>
-        request<any[]>('/api/get-scorecards'),
+    getScorecards: (filters?: ScorecardFilters) => {
+        const params = new URLSearchParams();
+        if (filters?.category) params.set('category', filters.category);
+        if (filters?.search) params.set('search', filters.search);
+        if (filters?.verdict) params.set('verdict', filters.verdict);
+        if (filters?.page) params.set('page', String(filters.page));
+        if (filters?.limit) params.set('limit', String(filters.limit));
+        const qs = params.toString();
+        return request<PaginatedResponse<Scorecard>>(`/api/get-scorecards${qs ? `?${qs}` : ''}`);
+    },
 
     getScorecard: (id: string) =>
         request<any>(`/api/get-scorecard?id=${id}`),
+
+    updateScorecard: (id: string, data: any) =>
+        request<Scorecard>(`/api/update-scorecard?id=${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        }),
+
+    updateOutcome: (id: string, data: { result: string; notes: string }) =>
+        request<Scorecard>(`/api/update-outcome?id=${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        }),
 
     deleteScorecard: (id: string) =>
         request<any>(`/api/delete-scorecard?id=${id}`, { method: 'DELETE' }),

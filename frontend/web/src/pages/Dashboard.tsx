@@ -1,50 +1,118 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Box, Typography, Button, Card, CardContent, Alert, CircularProgress, Chip, LinearProgress
+    Box, Typography, Button, Card, CardContent, Alert, CircularProgress, Chip, LinearProgress,
+    TextField, InputAdornment
 } from '@mui/material';
-import { Scorecard } from '../types';
+import { Scorecard, ScorecardFilters, DecisionCategory } from '../types';
 import { api } from '../api/client';
 import { ScorecardCard } from '../components/ScorecardCard';
-import { getVerdictFromTotal, getLevelLabel } from '../constants';
+import { getVerdictFromTotal, getLevelLabel, categories } from '../constants';
 import { buildDecisionProfile, buildCategoryAnalytics, detectPatterns } from '../lib/analytics';
 
 interface DashboardProps {
     isGuest: boolean;
 }
 
+const verdictOptions = [
+    { value: 'excellent', label: '🌟 Excellent' },
+    { value: 'acceptable', label: '✅ Acceptable' },
+    { value: 'borderline', label: '⚠️ Borderline' },
+    { value: 'poor', label: '🔻 Poor' },
+    { value: 'critical', label: '🚨 Critical' }
+];
+
 export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
     const navigate = useNavigate();
     const [scorecards, setScorecards] = useState<Scorecard[]>([]);
+    const [allScorecards, setAllScorecards] = useState<Scorecard[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [total, setTotal] = useState(0);
+    const [hasMore, setHasMore] = useState(false);
+    const [page, setPage] = useState(1);
+
+    // Filters
+    const [filterCategory, setFilterCategory] = useState<string>('');
+    const [filterVerdict, setFilterVerdict] = useState<string>('');
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searchDebounce, setSearchDebounce] = useState<string>('');
+
+    const LIMIT = 20;
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => setSearchDebounce(searchQuery), 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         if (isGuest) {
             setLoading(false);
             return;
         }
-        loadScorecards();
+        // Reset pagination on filter change
+        setPage(1);
+        setScorecards([]);
+        loadScorecards(1);
+    }, [isGuest, filterCategory, filterVerdict, searchDebounce]);
+
+    // Load all scorecards once (unfiltered) for analytics
+    useEffect(() => {
+        if (isGuest) return;
+        api.getScorecards({ limit: 50 }).then(res => {
+            setAllScorecards(res.data);
+        }).catch(() => {});
     }, [isGuest]);
 
-    const loadScorecards = async () => {
+    const loadScorecards = async (pageNum: number) => {
+        const isFirstPage = pageNum === 1;
+        if (isFirstPage) setLoading(true);
+        else setLoadingMore(true);
+
         try {
-            const data = await api.getScorecards();
-            setScorecards(data);
+            const filters: ScorecardFilters = { page: pageNum, limit: LIMIT };
+            if (filterCategory) filters.category = filterCategory as DecisionCategory;
+            if (filterVerdict) filters.verdict = filterVerdict;
+            if (searchDebounce) filters.search = searchDebounce;
+
+            const result = await api.getScorecards(filters);
+            if (isFirstPage) {
+                setScorecards(result.data);
+            } else {
+                setScorecards(prev => [...prev, ...result.data]);
+            }
+            setTotal(result.total);
+            setHasMore(result.hasMore);
+            setPage(pageNum);
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
-    const avgScore = scorecards.length > 0
-        ? Math.round(scorecards.reduce((sum, s) => sum + (s.totalScore || 0), 0) / scorecards.length)
+    const handleLoadMore = () => {
+        loadScorecards(page + 1);
+    };
+
+    const clearFilters = () => {
+        setFilterCategory('');
+        setFilterVerdict('');
+        setSearchQuery('');
+    };
+
+    const hasActiveFilters = filterCategory || filterVerdict || searchDebounce;
+
+    const avgScore = allScorecards.length > 0
+        ? Math.round(allScorecards.reduce((sum, s) => sum + (s.totalScore || 0), 0) / allScorecards.length)
         : 0;
     const avgVerdict = getVerdictFromTotal(avgScore);
-    const profile = buildDecisionProfile(scorecards);
-    const categoryAnalytics = buildCategoryAnalytics(scorecards);
-    const patternWarnings = detectPatterns(scorecards);
+    const profile = buildDecisionProfile(allScorecards);
+    const categoryAnalytics = buildCategoryAnalytics(allScorecards);
+    const patternWarnings = detectPatterns(allScorecards);
     const hasCritical = patternWarnings.some(w => w.severity === 'critical');
 
     return (
@@ -61,7 +129,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                 </Button>
             </Box>
 
-            {!isGuest && scorecards.length > 0 && (
+            {!isGuest && allScorecards.length > 0 && (
                 <Box sx={{
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
@@ -70,7 +138,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                     <Card>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <Typography variant="h3" fontWeight={700} color="primary">
-                                {scorecards.length}
+                                {allScorecards.length}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Total Decisions
@@ -303,7 +371,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                 </Card>
             )}
 
-            {!loading && !isGuest && scorecards.length === 0 && !error && (
+            {!loading && !isGuest && scorecards.length === 0 && !error && !hasActiveFilters && (
                 <Card sx={{ textAlign: 'center', py: 6 }}>
                     <CardContent>
                         <Typography variant="h5" sx={{ mb: 1 }}>📋 No scorecards yet</Typography>
@@ -319,7 +387,56 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
 
             {!loading && scorecards.length > 0 && (
                 <Box>
-                    <Typography variant="h6" gutterBottom>Recent Scorecards</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">
+                            {hasActiveFilters ? `Filtered Results (${total})` : 'Recent Scorecards'}
+                        </Typography>
+                        {hasActiveFilters && (
+                            <Button size="small" onClick={clearFilters}>Clear Filters</Button>
+                        )}
+                    </Box>
+
+                    {/* Filter Bar */}
+                    <Card sx={{ mb: 3, p: 2 }}>
+                        <TextField
+                            fullWidth size="small" placeholder="Search decisions..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            InputProps={{
+                                startAdornment: <InputAdornment position="start">🔍</InputAdornment>
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                        <Box sx={{ mb: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Category</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                {categories.map(cat => (
+                                    <Chip
+                                        key={cat.value} size="small"
+                                        label={`${cat.icon} ${cat.label}`}
+                                        onClick={() => setFilterCategory(filterCategory === cat.value ? '' : cat.value)}
+                                        color={filterCategory === cat.value ? 'primary' : 'default'}
+                                        variant={filterCategory === cat.value ? 'filled' : 'outlined'}
+                                    />
+                                ))}
+                            </Box>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Score Band</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                {verdictOptions.map(v => (
+                                    <Chip
+                                        key={v.value} size="small"
+                                        label={v.label}
+                                        onClick={() => setFilterVerdict(filterVerdict === v.value ? '' : v.value)}
+                                        color={filterVerdict === v.value ? 'primary' : 'default'}
+                                        variant={filterVerdict === v.value ? 'filled' : 'outlined'}
+                                    />
+                                ))}
+                            </Box>
+                        </Box>
+                    </Card>
+
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         {scorecards.map(sc => (
                             <ScorecardCard
@@ -329,7 +446,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                             />
                         ))}
                     </Box>
+
+                    {hasMore && (
+                        <Box sx={{ textAlign: 'center', mt: 3 }}>
+                            <Button
+                                variant="outlined" onClick={handleLoadMore} disabled={loadingMore}
+                                fullWidth
+                            >
+                                {loadingMore ? 'Loading...' : `Load More (${scorecards.length} of ${total})`}
+                            </Button>
+                        </Box>
+                    )}
                 </Box>
+            )}
+
+            {!loading && !isGuest && scorecards.length === 0 && hasActiveFilters && (
+                <Card sx={{ textAlign: 'center', py: 4 }}>
+                    <CardContent>
+                        <Typography variant="h6" sx={{ mb: 1 }}>🔍 No matching scorecards</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Try adjusting your filters.
+                        </Typography>
+                        <Button variant="outlined" onClick={clearFilters}>Clear Filters</Button>
+                    </CardContent>
+                </Card>
             )}
         </Box>
     );

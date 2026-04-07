@@ -25,6 +25,12 @@ export interface EmotionEntry {
     intensity: number;
 }
 
+export interface Outcome {
+    result: 'positive' | 'neutral' | 'negative';
+    notes: string;
+    recordedAt: string;
+}
+
 export interface Scorecard {
     id: string;
     _id?: string;
@@ -36,10 +42,27 @@ export interface Scorecard {
     verdict: string;
     isPreDecision: boolean;
     emotionBefore?: EmotionEntry;
+    outcome?: Outcome;
     aiInsights?: string;
     ruleInsights?: string[];
     createdAt: string;
     updatedAt?: string;
+}
+
+export interface ScorecardFilters {
+    category?: DecisionCategory;
+    search?: string;
+    verdict?: string;
+    page?: number;
+    limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    page: number;
+    limit: number;
+    hasMore: boolean;
 }
 
 export interface CategoryInfo {

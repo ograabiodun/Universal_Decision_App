@@ -2,12 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Typography, Card, CardContent, Button, Alert, CircularProgress,
-    Chip, Dialog, DialogTitle, DialogContent, DialogActions, Divider
+    Chip, Dialog, DialogTitle, DialogContent, DialogActions, Divider,
+    TextField, ToggleButton, ToggleButtonGroup, Paper
 } from '@mui/material';
-import { Scorecard, DecisionCategory } from '../types';
+import { Scorecard, DecisionCategory, ScoreValue, ScoreLevel } from '../types';
 import { api } from '../api/client';
-import { categories, emotions, getLevelLabel, getPillarFeedback, generateRuleBasedInsights } from '../constants';
+import { pillars, categories, emotions, getLevelLabel, getPillarFeedback, generateRuleBasedInsights } from '../constants';
 import { ScoreDisplay } from '../components/ScoreDisplay';
+
+interface PillarState {
+    score: ScoreValue | null;
+    level: ScoreLevel | null;
+    notes: string;
+}
 
 export const ScorecardDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -21,6 +28,20 @@ export const ScorecardDetail: React.FC = () => {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
+
+    // Outcome state
+    const [showOutcomeForm, setShowOutcomeForm] = useState(false);
+    const [outcomeResult, setOutcomeResult] = useState<string>('neutral');
+    const [outcomeNotes, setOutcomeNotes] = useState('');
+    const [outcomeSaving, setOutcomeSaving] = useState(false);
+
+    // Edit state
+    const [editing, setEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState('');
+    const [editCategory, setEditCategory] = useState('');
+    const [editIsPreDecision, setEditIsPreDecision] = useState(true);
+    const [editScores, setEditScores] = useState<Record<string, PillarState>>({});
+    const [editSaving, setEditSaving] = useState(false);
 
     useEffect(() => {
         if (!stateScorecard && id) {
@@ -64,6 +85,70 @@ export const ScorecardDetail: React.FC = () => {
         }
     };
 
+    const handleSaveOutcome = async () => {
+        if (!scorecard) return;
+        setOutcomeSaving(true);
+        setError(null);
+        try {
+            const updated = await api.updateOutcome(scorecard.id, {
+                result: outcomeResult,
+                notes: outcomeNotes
+            });
+            setScorecard(updated);
+            setShowOutcomeForm(false);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setOutcomeSaving(false);
+        }
+    };
+
+    const startEditing = () => {
+        if (!scorecard) return;
+        setEditTitle(scorecard.title);
+        setEditCategory(scorecard.category);
+        setEditIsPreDecision(scorecard.isPreDecision);
+        const scoreLookup: Record<string, PillarState> = {};
+        for (const pillar of pillars) {
+            const existing = scorecard.scores.find(s => s.pillarId === pillar.id);
+            scoreLookup[pillar.id] = {
+                score: (existing?.score ?? null) as ScoreValue | null,
+                level: (existing?.level ?? null) as ScoreLevel | null,
+                notes: existing?.notes || ''
+            };
+        }
+        setEditScores(scoreLookup);
+        setEditing(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!scorecard) return;
+        setEditSaving(true);
+        setError(null);
+        try {
+            const data = {
+                category: editCategory,
+                title: editTitle,
+                isPreDecision: editIsPreDecision,
+                emotionBefore: scorecard.emotionBefore,
+                scores: Object.entries(editScores).map(([pillarId, d]) => ({
+                    pillarId,
+                    pillarName: pillars.find(p => p.id === pillarId)?.name || pillarId,
+                    score: d.score,
+                    level: d.level,
+                    notes: d.notes
+                }))
+            };
+            const updated = await api.updateScorecard(scorecard.id, data);
+            setScorecard(updated);
+            setEditing(false);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setEditSaving(false);
+        }
+    };
+
     if (loading) {
         return <Box sx={{ textAlign: 'center', py: 8 }}><CircularProgress /></Box>;
     }
@@ -88,6 +173,123 @@ export const ScorecardDetail: React.FC = () => {
 
     const cat = categories.find(c => c.value === scorecard.category);
 
+    const outcomeLabels: Record<string, { icon: string; label: string; color: string }> = {
+        positive: { icon: '✅', label: 'Positive', color: '#10B981' },
+        neutral: { icon: '➖', label: 'Neutral', color: '#F59E0B' },
+        negative: { icon: '❌', label: 'Negative', color: '#EF4444' }
+    };
+
+    if (editing) {
+        const allEditScored = Object.values(editScores).every(s => s.score !== null);
+        return (
+            <Box>
+                <Button onClick={() => setEditing(false)} sx={{ mb: 2 }}>← Cancel Editing</Button>
+                <Typography variant="h5" fontWeight={700} gutterBottom>Edit Scorecard</Typography>
+
+                <Card sx={{ mb: 3 }}>
+                    <CardContent>
+                        <TextField
+                            fullWidth label="Decision Title" value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)} sx={{ mb: 2 }}
+                        />
+                        <Box sx={{
+                            display: 'grid',
+                            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
+                            gap: 1.5, mb: 2
+                        }}>
+                            {categories.map(c => (
+                                <Paper
+                                    key={c.value} elevation={editCategory === c.value ? 4 : 0}
+                                    onClick={() => setEditCategory(c.value)}
+                                    sx={{
+                                        p: 1.5, textAlign: 'center', cursor: 'pointer',
+                                        border: editCategory === c.value ? `2px solid ${c.color}` : '2px solid transparent',
+                                        bgcolor: editCategory === c.value ? `${c.color}15` : 'background.paper',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <Typography variant="body1">{c.icon}</Typography>
+                                    <Typography variant="caption" fontWeight={600}>{c.label}</Typography>
+                                </Paper>
+                            ))}
+                        </Box>
+                        <ToggleButtonGroup
+                            value={editIsPreDecision ? 'pre' : 'post'} exclusive
+                            onChange={(_, v) => v && setEditIsPreDecision(v === 'pre')}
+                            fullWidth size="small"
+                        >
+                            <ToggleButton value="pre">🔮 Pre-decision</ToggleButton>
+                            <ToggleButton value="post">🔍 Post-decision</ToggleButton>
+                        </ToggleButtonGroup>
+                    </CardContent>
+                </Card>
+
+                {pillars.map(pillar => {
+                    const currentState = editScores[pillar.id];
+                    const question = editIsPreDecision ? pillar.preQuestion : pillar.postQuestion;
+                    return (
+                        <Card key={pillar.id} sx={{ mb: 2 }}>
+                            <CardContent>
+                                <Typography variant="subtitle1" fontWeight={600}>{pillar.name}</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{question}</Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                                    {pillar.options.map(option => {
+                                        const isSelected = currentState?.level === option.level;
+                                        const levelInfo = getLevelLabel(option.level);
+                                        return (
+                                            <Paper
+                                                key={option.level}
+                                                onClick={() => setEditScores(prev => ({
+                                                    ...prev,
+                                                    [pillar.id]: { ...prev[pillar.id], score: option.value, level: option.level }
+                                                }))}
+                                                elevation={isSelected ? 3 : 0}
+                                                sx={{
+                                                    p: 2, cursor: 'pointer',
+                                                    border: isSelected ? `2px solid ${levelInfo.color}` : '2px solid #E4E4E7',
+                                                    bgcolor: isSelected ? `${levelInfo.color}10` : 'background.paper',
+                                                    transition: 'all 0.2s',
+                                                    '&:hover': { borderColor: levelInfo.color }
+                                                }}
+                                            >
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Typography variant="body1">{option.icon}</Typography>
+                                                    <Typography variant="body2" fontWeight={600}>{option.label}</Typography>
+                                                </Box>
+                                            </Paper>
+                                        );
+                                    })}
+                                </Box>
+                                <TextField
+                                    fullWidth multiline rows={2} size="small" label="Notes (optional)"
+                                    value={editScores[pillar.id]?.notes || ''}
+                                    onChange={e => setEditScores(prev => ({
+                                        ...prev,
+                                        [pillar.id]: { ...prev[pillar.id], notes: e.target.value }
+                                    }))}
+                                    sx={{ mt: 1 }}
+                                />
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+
+                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button onClick={() => setEditing(false)}>Cancel</Button>
+                    <Button
+                        variant="contained" onClick={handleSaveEdit}
+                        disabled={editSaving || !allEditScored || !editTitle.trim() || !editCategory}
+                        fullWidth size="large"
+                    >
+                        {editSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                </Box>
+            </Box>
+        );
+    }
+
     return (
         <Box>
             <Button onClick={() => navigate('/')} sx={{ mb: 2 }}>← Back to Dashboard</Button>
@@ -110,9 +312,14 @@ export const ScorecardDetail: React.FC = () => {
                                 />
                             </Box>
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
-                            {new Date(scorecard.createdAt).toLocaleDateString()}
-                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {new Date(scorecard.createdAt).toLocaleDateString()}
+                            </Typography>
+                            <Button variant="outlined" size="small" onClick={startEditing}>
+                                ✏️ Edit
+                            </Button>
+                        </Box>
                     </Box>
 
                     <Divider sx={{ my: 2 }} />
@@ -175,6 +382,82 @@ export const ScorecardDetail: React.FC = () => {
                                 </Typography>
                             </Box>
                         </>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Outcome Tracking */}
+            <Card sx={{ mb: 3, bgcolor: scorecard.outcome ? '#f0fdf4' : '#fffbeb', border: `1px solid ${scorecard.outcome ? '#10B98130' : '#F59E0B30'}` }}>
+                <CardContent>
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                        📋 Decision Outcome
+                    </Typography>
+                    {scorecard.outcome ? (
+                        <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                <Chip
+                                    label={`${outcomeLabels[scorecard.outcome.result]?.icon} ${outcomeLabels[scorecard.outcome.result]?.label}`}
+                                    sx={{
+                                        bgcolor: `${outcomeLabels[scorecard.outcome.result]?.color}20`,
+                                        color: outcomeLabels[scorecard.outcome.result]?.color,
+                                        fontWeight: 600
+                                    }}
+                                />
+                                <Typography variant="caption" color="text.secondary">
+                                    Recorded {new Date(scorecard.outcome.recordedAt).toLocaleDateString()}
+                                </Typography>
+                            </Box>
+                            {scorecard.outcome.notes && (
+                                <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                                    &ldquo;{scorecard.outcome.notes}&rdquo;
+                                </Typography>
+                            )}
+                            {scorecard.outcome.result === 'negative' && scorecard.totalScore >= 2 && (
+                                <Alert severity="info" sx={{ mt: 2 }}>
+                                    Your audit scored well but the outcome was negative — external factors may have played a role, or consider whether scores were too generous.
+                                </Alert>
+                            )}
+                            {scorecard.outcome.result === 'positive' && scorecard.totalScore <= -1 && (
+                                <Alert severity="info" sx={{ mt: 2 }}>
+                                    Positive outcome despite low scores — you may have gotten lucky. Don't let this reinforce poor process.
+                                </Alert>
+                            )}
+                        </Box>
+                    ) : showOutcomeForm ? (
+                        <Box>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                How did this decision turn out?
+                            </Typography>
+                            <ToggleButtonGroup
+                                value={outcomeResult} exclusive
+                                onChange={(_, v) => v && setOutcomeResult(v)}
+                                fullWidth sx={{ mb: 2 }}
+                            >
+                                <ToggleButton value="positive" sx={{ color: '#10B981' }}>✅ Positive</ToggleButton>
+                                <ToggleButton value="neutral" sx={{ color: '#F59E0B' }}>➖ Neutral</ToggleButton>
+                                <ToggleButton value="negative" sx={{ color: '#EF4444' }}>❌ Negative</ToggleButton>
+                            </ToggleButtonGroup>
+                            <TextField
+                                fullWidth multiline rows={3} label="What happened? (optional)"
+                                value={outcomeNotes} onChange={e => setOutcomeNotes(e.target.value)}
+                                sx={{ mb: 2 }}
+                            />
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Button onClick={() => setShowOutcomeForm(false)}>Cancel</Button>
+                                <Button variant="contained" onClick={handleSaveOutcome} disabled={outcomeSaving} fullWidth>
+                                    {outcomeSaving ? 'Saving...' : 'Save Outcome'}
+                                </Button>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Box>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Track what actually happened to validate your decision-making process.
+                            </Typography>
+                            <Button variant="outlined" onClick={() => setShowOutcomeForm(true)}>
+                                Record Outcome
+                            </Button>
+                        </Box>
                     )}
                 </CardContent>
             </Card>
