@@ -127,7 +127,7 @@ export const NewScorecard: React.FC = () => {
     return (
         <Box>
             <Typography variant="h5" fontWeight={700} gutterBottom>
-                New Decision Audit
+                New Decision Scorecard
             </Typography>
 
             <Stepper activeStep={activeStep} sx={{ mb: 4 }} alternativeLabel>

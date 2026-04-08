@@ -40,10 +40,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
                         <Typography variant="h4" gutterBottom>🎯</Typography>
                         <Typography variant="h5" fontWeight={700}>
-                            Decision Audit
+                            ClarityPro
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                            Score, track, and improve your decision-making
+                            Make decisions with confidence
                         </Typography>
                     </Box>
 

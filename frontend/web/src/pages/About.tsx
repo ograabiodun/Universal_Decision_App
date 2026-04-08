@@ -25,26 +25,26 @@ export const About: React.FC = () => {
 
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h4" fontWeight={800} gutterBottom>
-                    🎯 Universal Decision Audit Scorecard
+                    🎯 ClarityPro
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-                    A psychologically-informed decision companion
+                    Make decisions with confidence
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                     Version 1.0 &bull; Open Source &bull; Free to Use
                 </Typography>
             </Box>
 
-            {/* What Is UDAS */}
-            <Section title="What Is UDAS?" icon="🧠">
+            {/* What Is ClarityPro */}
+            <Section title="What Is ClarityPro?" icon="🧠">
                 <Typography variant="body1" sx={{ mb: 2 }}>
-                    The <strong>Universal Decision Audit Scorecard (UDAS)</strong> is a modern web application
+                    <strong>ClarityPro</strong> is a modern web application
                     that helps users make better life decisions through structured self-auditing. Every day, people
                     make decisions they later regret — acting impulsively, skipping research, rushing timing, or
                     deciding while emotional.
                 </Typography>
                 <Typography variant="body1">
-                    UDAS provides a <strong>structured, non-judgmental framework</strong> that guides users through
+                    ClarityPro provides a <strong>structured, non-judgmental framework</strong> that guides users through
                     four critical decision pillars, scores decisions objectively, tracks history to reveal patterns,
                     and generates actionable insights for continuous improvement.
                 </Typography>
@@ -103,7 +103,7 @@ export const About: React.FC = () => {
             {/* Decision Categories */}
             <Section title="Decision Categories" icon="📁">
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    UDAS supports 9 life domains so you can audit any major decision:
+                    ClarityPro supports 9 life domains so you can audit any major decision:
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {[
@@ -235,7 +235,7 @@ export const About: React.FC = () => {
             {/* Psychological Foundation */}
             <Section title="Psychological Foundation" icon="🧬">
                 <Typography variant="body2" sx={{ mb: 2 }}>
-                    UDAS is grounded in established decision science and psychology research:
+                    ClarityPro is grounded in established decision science and psychology research:
                 </Typography>
                 {[
                     { framework: 'Dual Process Theory', source: 'Kahneman, 2011', use: 'Activates System 2 (rational) over System 1 (emotional) by forcing structured evaluation' },
@@ -254,7 +254,7 @@ export const About: React.FC = () => {
                     Language Design for Psychological Safety
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                    Instead of judgmental terms like "Poor decision" or "Critical failure", UDAS uses growth-oriented language:
+                    Instead of judgmental terms like "Poor decision" or "Critical failure", ClarityPro uses growth-oriented language:
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Chip label='⚖️ "Even Ground"' size="small" variant="outlined" />
@@ -270,7 +270,7 @@ export const About: React.FC = () => {
                         <TableHead>
                             <TableRow sx={{ bgcolor: '#f5f5f5' }}>
                                 <TableCell sx={{ fontWeight: 700 }}>User Type</TableCell>
-                                <TableCell sx={{ fontWeight: 700 }}>How They Use UDAS</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>How They Use ClarityPro</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -316,11 +316,11 @@ export const About: React.FC = () => {
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     With a background spanning quality assurance, technical support, and large language model evaluation,
-                    UDAS was born from a passion for combining decision science with accessible technology.
+                    ClarityPro was born from a passion for combining decision science with accessible technology.
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Chip label="🔗 GitHub" component="a" href="https://github.com/ograabiodun/Universal_Decision_App" target="_blank" clickable variant="outlined" />
-                    <Chip label="🌐 Live App" component="a" href="https://universal-decision-app-ograabioduns-projects.vercel.app" target="_blank" clickable variant="outlined" />
+                    <Chip label="🌐 Live App" component="a" href="https://claritypro.vercel.app" target="_blank" clickable variant="outlined" />
                 </Box>
             </Section>
 
@@ -339,7 +339,7 @@ export const About: React.FC = () => {
 
             <Box sx={{ textAlign: 'center', py: 3, opacity: 0.6 }}>
                 <Typography variant="caption">
-                    Universal Decision Audit Scorecard &bull; Built with React, MUI, Vercel & MongoDB Atlas
+                    ClarityPro &bull; Built with React, MUI, Vercel & MongoDB Atlas
                 </Typography>
             </Box>
         </Box>

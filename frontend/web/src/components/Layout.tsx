@@ -25,7 +25,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, isGues
                         sx={{ cursor: 'pointer', flexGrow: 0, mr: 4 }}
                         onClick={() => navigate('/')}
                     >
-                        🎯 Decision Audit
+                        🎯 ClarityPro
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
                         <Button
