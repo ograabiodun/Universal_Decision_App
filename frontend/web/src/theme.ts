@@ -60,7 +60,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
         MuiAppBar: {
             styleOverrides: {
                 root: {
-                    backgroundColor: mode === 'light' ? '#0077B6' : '#0D2137'
+                    backgroundColor: mode === 'light' ? '#003459' : '#0D2137'
                 }
             }
         }
