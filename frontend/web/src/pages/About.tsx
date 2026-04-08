@@ -25,7 +25,7 @@ export const About: React.FC = () => {
 
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h4" fontWeight={800} gutterBottom>
-                    🎯 ClarityPro
+                    💡 ClarityPro
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                     Make decisions with confidence
@@ -243,7 +243,7 @@ export const About: React.FC = () => {
                     { framework: 'Cognitive Load Management', source: 'Sweller, 1988', use: 'Breaking complex decisions into 4 manageable pillars' },
                     { framework: 'Growth Mindset', source: 'Dweck, 2006', use: 'Language focuses on learning and growth, never failure or shame' },
                 ].map((f, i) => (
-                    <Box key={i} sx={{ mb: 1.5, p: 1.5, bgcolor: '#f5f0ff', borderRadius: 1 }}>
+                    <Box key={i} sx={{ mb: 1.5, p: 1.5, bgcolor: (theme) => theme.palette.mode === 'light' ? '#E8F4FD' : '#0D2137', borderRadius: 1 }}>
                         <Typography variant="body2" fontWeight={600}>{f.framework}</Typography>
                         <Typography variant="caption" color="text.secondary">{f.source}</Typography>
                         <Typography variant="body2" sx={{ mt: 0.5 }}>{f.use}</Typography>
@@ -300,7 +300,7 @@ export const About: React.FC = () => {
                     { phase: 'Collaborative Decisions', desc: 'Share audits with a partner or advisor' },
                 ].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', gap: 1.5, mb: 1.5, alignItems: 'flex-start' }}>
-                        <Chip label={`${i + 1}`} size="small" sx={{ bgcolor: '#6366F1', color: 'white', fontWeight: 700, minWidth: 28 }} />
+                        <Chip label={`${i + 1}`} size="small" sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 700, minWidth: 28 }} />
                         <Box>
                             <Typography variant="body2" fontWeight={600}>{item.phase}</Typography>
                             <Typography variant="body2" color="text.secondary">{item.desc}</Typography>

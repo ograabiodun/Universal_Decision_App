@@ -76,14 +76,14 @@ export const emotions: EmotionOption[] = [
 ];
 
 export const categories: CategoryInfo[] = [
-    { value: 'career', label: 'Career', icon: '💼', color: '#6366F1' },
+    { value: 'career', label: 'Career', icon: '💼', color: '#0077B6' },
     { value: 'relationships', label: 'Relationships', icon: '❤️', color: '#EC4899' },
     { value: 'family', label: 'Family', icon: '👨‍👩‍👧‍👦', color: '#10B981' },
     { value: 'investments', label: 'Investments', icon: '📈', color: '#F59E0B' },
-    { value: 'savings', label: 'Savings', icon: '💰', color: '#8B5CF6' },
+    { value: 'savings', label: 'Savings', icon: '💰', color: '#2E9B5F' },
     { value: 'purchases', label: 'Purchases', icon: '🛍️', color: '#EF4444' },
     { value: 'health', label: 'Health', icon: '🏥', color: '#06B6D4' },
-    { value: 'education', label: 'Education', icon: '🎓', color: '#4F46E5' },
+    { value: 'education', label: 'Education', icon: '🎓', color: '#005F8C' },
     { value: 'business', label: 'Business', icon: '🏢', color: '#78716C' }
 ];
 
@@ -94,7 +94,7 @@ export function getVerdictFromTotal(totalScore: number): VerdictInfo {
         recommendation: 'Proceed with confidence. Document what made this process work so you can replicate it in future decisions.'
     };
     if (totalScore >= 1) return {
-        label: 'Acceptable', color: '#6366F1', icon: '✅', band: 'acceptable',
+        label: 'Acceptable', color: '#0077B6', icon: '✅', band: 'acceptable',
         description: 'Your decision has a solid foundation but has gaps in one or more areas. You covered most bases, but some pillars need attention.',
         recommendation: 'Address the weaker pillars before finalizing. A small pause to shore up weak spots could significantly improve your outcome.'
     };

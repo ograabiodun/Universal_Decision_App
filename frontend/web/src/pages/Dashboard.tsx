@@ -245,7 +245,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
             )}
 
             {profile && (
-                <Card sx={{ mb: 4, bgcolor: '#f8f7ff', border: '1px solid #6366F120' }}>
+                <Card sx={{ mb: 4, bgcolor: (theme) => theme.palette.mode === 'light' ? '#E8F4FD' : '#0D2137', border: (theme) => `1px solid ${theme.palette.mode === 'light' ? '#0077B620' : '#0077B640'}` }}>
                     <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                             <Typography variant="h6" fontWeight={700}>

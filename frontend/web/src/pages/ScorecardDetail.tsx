@@ -388,7 +388,7 @@ export const ScorecardDetail: React.FC = () => {
                                             {feedback.feedback}
                                         </Typography>
                                         {s.level !== 'good' && (
-                                            <Typography variant="body2" sx={{ color: '#6366F1', fontWeight: 500 }}>
+                                            <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 500 }}>
                                                 → {feedback.actionItem}
                                             </Typography>
                                         )}
@@ -503,7 +503,7 @@ export const ScorecardDetail: React.FC = () => {
 
             {/* Re-audit as Post-decision (for pre-decision scorecards) */}
             {scorecard.isPreDecision && !scorecard.linkedScorecardId && (
-                <Card sx={{ mb: 3, bgcolor: '#f8f7ff', border: '1px solid #6366F120' }}>
+                <Card sx={{ mb: 3, bgcolor: (theme) => theme.palette.mode === 'light' ? '#E8F4FD' : '#0D2137', border: (theme) => `1px solid ${theme.palette.mode === 'light' ? '#0077B620' : '#0077B640'}` }}>
                     <CardContent>
                         <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                             🔄 Follow Up: Re-audit as Post-decision
@@ -524,7 +524,7 @@ export const ScorecardDetail: React.FC = () => {
 
             {/* Linked Comparison (pre vs post) */}
             {linkedScorecard && (
-                <Card sx={{ mb: 3, bgcolor: '#faf5ff', border: '1px solid #8B5CF620' }}>
+                <Card sx={{ mb: 3, bgcolor: (theme) => theme.palette.mode === 'light' ? '#E6F5ED' : '#0F2A1A', border: (theme) => `1px solid ${theme.palette.mode === 'light' ? '#2E9B5F20' : '#2E9B5F40'}` }}>
                     <CardContent>
                         <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                             🔗 Pre vs. Post Comparison
@@ -598,7 +598,7 @@ export const ScorecardDetail: React.FC = () => {
                 </CardContent>
             </Card>
 
-            <Card sx={{ mb: 3, bgcolor: scorecard.aiInsights ? '#f5f0ff' : undefined }}>
+            <Card sx={{ mb: 3, bgcolor: scorecard.aiInsights ? (theme: any) => theme.palette.mode === 'light' ? '#E8F4FD' : '#0D2137' : undefined }}>
                 <CardContent>
                     <Typography variant="subtitle2" fontWeight={600} gutterBottom>🤖 AI-Powered Insights</Typography>
                     {scorecard.aiInsights ? (

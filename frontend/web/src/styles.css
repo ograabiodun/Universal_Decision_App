@@ -9,8 +9,7 @@
 body {
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background-color: #FAFAFA;
-    color: #18181B;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #root {

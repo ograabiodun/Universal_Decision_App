@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import { theme } from './theme';
+import { useThemeMode } from './hooks/useThemeMode';
 import { useAuth } from './hooks/useAuth';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
@@ -12,6 +12,7 @@ import { About } from './pages/About';
 
 export const App: React.FC = () => {
     const { user, loading, login, loginAsGuest, logout, isGuest } = useAuth();
+    const { mode, toggleMode, theme } = useThemeMode();
 
     if (loading) return null;
 
@@ -19,7 +20,7 @@ export const App: React.FC = () => {
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline />
-                <Login onLogin={login} onGuest={loginAsGuest} />
+                <Login onLogin={login} onGuest={loginAsGuest} themeMode={mode} onToggleTheme={toggleMode} />
             </ThemeProvider>
         );
     }
@@ -28,7 +29,7 @@ export const App: React.FC = () => {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <BrowserRouter>
-                <Layout user={user} onLogout={logout} isGuest={isGuest}>
+                <Layout user={user} onLogout={logout} isGuest={isGuest} themeMode={mode} onToggleTheme={toggleMode}>
                     <Routes>
                         <Route path="/" element={<Dashboard isGuest={isGuest} />} />
                         <Route path="/new" element={<NewScorecard />} />

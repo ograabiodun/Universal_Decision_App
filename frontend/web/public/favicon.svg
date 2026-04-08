@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bulb" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00A8E8"/>
+      <stop offset="50%" style="stop-color:#0077B6"/>
+      <stop offset="100%" style="stop-color:#2E9B5F"/>
+    </linearGradient>
+  </defs>
+  <!-- Bulb body -->
+  <path d="M32 6C20.95 6 12 14.95 12 26c0 7.18 3.78 13.47 9.45 17.02C22.62 43.83 23 45.36 23 47v2c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-2c0-1.64.38-3.17 1.55-3.98C48.22 39.47 52 33.18 52 26 52 14.95 43.05 6 32 6z" fill="url(#bulb)"/>
+  <!-- Segments -->
+  <line x1="32" y1="8" x2="32" y2="44" stroke="white" stroke-width="1.5" opacity="0.6"/>
+  <line x1="14" y1="26" x2="50" y2="26" stroke="white" stroke-width="1.5" opacity="0.6"/>
+  <!-- Sparkle -->
+  <circle cx="32" cy="26" r="2.5" fill="white" opacity="0.9"/>
+  <!-- Base -->
+  <rect x="24" y="51" width="16" height="3" rx="1.5" fill="#005F8C"/>
+  <rect x="26" y="55" width="12" height="3" rx="1.5" fill="#005F8C"/>
+</svg>

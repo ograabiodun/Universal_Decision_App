@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import {
-    Box, Card, CardContent, Typography, TextField, Button, Alert, Divider, ToggleButton, ToggleButtonGroup
+    Box, Card, CardContent, Typography, TextField, Button, Alert, Divider, ToggleButton, ToggleButtonGroup,
+    IconButton, Tooltip, PaletteMode
 } from '@mui/material';
 
 interface LoginProps {
     onLogin: (email: string, password: string, mode: 'login' | 'register') => Promise<any>;
     onGuest: () => void;
+    themeMode: PaletteMode;
+    onToggleTheme: () => void;
 }
 
-export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
+export const Login: React.FC<LoginProps> = ({ onLogin, onGuest, themeMode, onToggleTheme }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -33,12 +36,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest }) => {
     return (
         <Box sx={{
             minHeight: '100vh', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', bgcolor: '#f5f7fa', p: 2
+            justifyContent: 'center', bgcolor: 'background.default', p: 2, position: 'relative'
         }}>
+            <Tooltip title={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+                <IconButton
+                    onClick={onToggleTheme}
+                    sx={{ position: 'absolute', top: 16, right: 16, opacity: 0.7 }}
+                >
+                    <Typography fontSize="1.3rem">{themeMode === 'light' ? '🌙' : '☀️'}</Typography>
+                </IconButton>
+            </Tooltip>
             <Card sx={{ maxWidth: 440, width: '100%' }}>
                 <CardContent sx={{ p: 4 }}>
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
-                        <Typography variant="h4" gutterBottom>🎯</Typography>
+                        <Typography variant="h4" gutterBottom>💡</Typography>
                         <Typography variant="h5" fontWeight={700}>
                             ClarityPro
                         </Typography>
