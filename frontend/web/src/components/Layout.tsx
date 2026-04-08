@@ -23,9 +23,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, isGues
             <AppBar position="sticky" elevation={0}>
                 <Toolbar>
                     <Box
-                        sx={{ cursor: 'pointer', flexGrow: 0, mr: 4, display: 'flex', alignItems: 'center' }}
+                        sx={{ cursor: 'pointer', flexGrow: 0, mr: 4, display: 'flex', alignItems: 'center', gap: 1 }}
                         onClick={() => navigate('/')}
                     >
+                        <img src="/logo.png" alt="ClarityPro" style={{ height: 32, width: 'auto' }} />
                         <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: '-0.5px' }}>
                             <Box component="span" sx={{ color: 'white' }}>Clarity</Box>
                             <Box component="span" sx={{ color: '#86EFAC' }}>Pro</Box>
