@@ -24,8 +24,9 @@ export const About: React.FC = () => {
             <Button onClick={() => navigate('/')} sx={{ mb: 2 }}>← Back to Dashboard</Button>
 
             <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <img src="/logo.png" alt="ClarityPro" style={{ height: 72, width: 'auto', marginBottom: 8 }} />
                 <Typography variant="h4" fontWeight={800} gutterBottom>
-                    💡 ClarityPro
+                    ClarityPro
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                     Make decisions with confidence

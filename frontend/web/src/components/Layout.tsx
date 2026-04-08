@@ -22,13 +22,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, isGues
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             <AppBar position="sticky" elevation={0}>
                 <Toolbar>
-                    <Typography
-                        variant="h6"
-                        sx={{ cursor: 'pointer', flexGrow: 0, mr: 4 }}
+                    <Box
+                        sx={{ cursor: 'pointer', flexGrow: 0, mr: 4, display: 'flex', alignItems: 'center', gap: 1 }}
                         onClick={() => navigate('/')}
                     >
-                        💡 ClarityPro
-                    </Typography>
+                        <img src="/logo.png" alt="ClarityPro" style={{ height: 28, width: 'auto' }} />
+                        <Typography variant="h6">ClarityPro</Typography>
+                    </Box>
                     <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
                         <Button
                             color="inherit"
