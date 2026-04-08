@@ -49,10 +49,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onGuest, themeMode, onTog
             <Card sx={{ maxWidth: 440, width: '100%' }}>
                 <CardContent sx={{ p: 4 }}>
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
-                        <img src="/logo.png" alt="ClarityPro" style={{ height: 100, width: 'auto', marginBottom: 12 }} />
-                        <Typography variant="h5" fontWeight={700}>
-                            ClarityPro
-                        </Typography>
+                        <img src="/logo.png" alt="ClarityPro" style={{ height: 140, width: 'auto', marginBottom: 12 }} />
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                             Make decisions with confidence
                         </Typography>
