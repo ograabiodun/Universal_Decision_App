@@ -26,7 +26,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, isGues
                         sx={{ cursor: 'pointer', flexGrow: 0, mr: 4, display: 'flex', alignItems: 'center' }}
                         onClick={() => navigate('/')}
                     >
-                        <img src="/logo.png" alt="ClarityPro" style={{ height: 40, width: 'auto' }} />
+                        <img src="/logo.png" alt="ClarityPro" style={{ height: 50, width: 'auto', marginRight: 0 }} />
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
                         <Button
