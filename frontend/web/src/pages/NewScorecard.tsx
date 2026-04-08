@@ -263,7 +263,7 @@ export const NewScorecard: React.FC = () => {
                                                         p: 2, cursor: 'pointer',
                                                         border: isSelected
                                                             ? `2px solid ${levelInfo.color}`
-                                                            : '2px solid #E4E4E7',
+                                                            : (t: any) => `2px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}`,
                                                         bgcolor: isSelected ? `${levelInfo.color}10` : 'background.paper',
                                                         transition: 'all 0.2s',
                                                         '&:hover': { borderColor: levelInfo.color, bgcolor: `${levelInfo.color}08` }
@@ -464,7 +464,7 @@ export const NewScorecard: React.FC = () => {
                                 emotionBefore.emotions.length > 0 ? emotionBefore : undefined,
                                 isPreDecision
                             ).map((insight, i) => (
-                                <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                                <Box key={i} sx={{ mb: 1, p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}` }}>
                                     <Typography variant="body2">{insight}</Typography>
                                 </Box>
                             ))}
@@ -519,7 +519,8 @@ export const NewScorecard: React.FC = () => {
                         {savedScorecard.isPreDecision && (
                             <Card sx={{
                                 mb: 3, mx: 'auto', maxWidth: 440,
-                                bgcolor: '#FFFBEB', border: '1px solid #F59E0B30'
+                                bgcolor: (t: any) => t.palette.mode === 'dark' ? '#2A2215' : '#FFFBEB',
+                                border: (t: any) => `1px solid ${t.palette.mode === 'dark' ? '#F59E0B40' : '#F59E0B30'}`
                             }}>
                                 <CardContent sx={{ py: 2 }}>
                                     <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>

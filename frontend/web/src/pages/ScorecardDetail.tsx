@@ -282,7 +282,7 @@ export const ScorecardDetail: React.FC = () => {
                                                 elevation={isSelected ? 3 : 0}
                                                 sx={{
                                                     p: 2, cursor: 'pointer',
-                                                    border: isSelected ? `2px solid ${levelInfo.color}` : '2px solid #E4E4E7',
+                                                    border: isSelected ? `2px solid ${levelInfo.color}` : (t: any) => `2px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}`,
                                                     bgcolor: isSelected ? `${levelInfo.color}10` : 'background.paper',
                                                     transition: 'all 0.2s',
                                                     '&:hover': { borderColor: levelInfo.color }
@@ -426,7 +426,7 @@ export const ScorecardDetail: React.FC = () => {
             </Card>
 
             {/* Outcome Tracking */}
-            <Card sx={{ mb: 3, bgcolor: scorecard.outcome ? '#f0fdf4' : '#fffbeb', border: `1px solid ${scorecard.outcome ? '#10B98130' : '#F59E0B30'}` }}>
+            <Card sx={{ mb: 3, bgcolor: (t: any) => { const d = t.palette.mode === 'dark'; return scorecard.outcome ? (d ? '#0F2A1A' : '#f0fdf4') : (d ? '#2A2215' : '#fffbeb'); }, border: (t: any) => `1px solid ${scorecard.outcome ? (t.palette.mode === 'dark' ? '#10B98140' : '#10B98130') : (t.palette.mode === 'dark' ? '#F59E0B40' : '#F59E0B30')}` }}>
                 <CardContent>
                     <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                         📋 Decision Outcome
@@ -534,7 +534,7 @@ export const ScorecardDetail: React.FC = () => {
                             ({new Date(linkedScorecard.createdAt).toLocaleDateString()})
                         </Typography>
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
-                            <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                            <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}` }}>
                                 <Typography variant="caption" color="text.secondary">
                                     {scorecard.isPreDecision ? '🔮 Pre-decision (this)' : '🔍 Post-decision (this)'}
                                 </Typography>
@@ -542,7 +542,7 @@ export const ScorecardDetail: React.FC = () => {
                                     {scorecard.totalScore > 0 ? '+' : ''}{scorecard.totalScore}
                                 </Typography>
                             </Box>
-                            <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                            <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}` }}>
                                 <Typography variant="caption" color="text.secondary">
                                     {linkedScorecard.isPreDecision ? '🔮 Pre-decision (linked)' : '🔍 Post-decision (linked)'}
                                 </Typography>
@@ -558,7 +558,7 @@ export const ScorecardDetail: React.FC = () => {
                             const otherLevel = otherScore?.level ? getLevelLabel(otherScore.level) : null;
                             const changed = thisScore?.score !== otherScore?.score;
                             return (
-                                <Box key={pillar.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, p: 1, bgcolor: changed ? '#FEF3C720' : 'transparent', borderRadius: 1 }}>
+                                <Box key={pillar.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, p: 1, bgcolor: changed ? (t: any) => t.palette.mode === 'dark' ? '#332A1020' : '#FEF3C720' : 'transparent', borderRadius: 1 }}>
                                     <Typography variant="body2" fontWeight={500} sx={{ flex: 1 }}>{pillar.name}</Typography>
                                     <Chip label={`${thisLevel?.icon || '—'} ${thisLevel?.label || '—'}`} size="small" sx={{ minWidth: 80, mr: 1 }} />
                                     <Typography variant="body2" sx={{ mx: 1 }}>→</Typography>
@@ -579,7 +579,7 @@ export const ScorecardDetail: React.FC = () => {
                 </Card>
             )}
 
-            <Card sx={{ mb: 3, bgcolor: '#f0f7ff' }}>
+            <Card sx={{ mb: 3, bgcolor: (t: any) => t.palette.mode === 'light' ? '#f0f7ff' : '#0D2137' }}>
                 <CardContent>
                     <Typography variant="subtitle2" fontWeight={600} gutterBottom>💡 Decision Insights</Typography>
                     {(() => {
@@ -590,7 +590,7 @@ export const ScorecardDetail: React.FC = () => {
                             scorecard.isPreDecision
                         );
                         return ruleInsights.map((insight, i) => (
-                            <Box key={i} sx={{ mb: 1.5, p: 1.5, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7' }}>
+                            <Box key={i} sx={{ mb: 1.5, p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}` }}>
                                 <Typography variant="body2">{insight}</Typography>
                             </Box>
                         ));

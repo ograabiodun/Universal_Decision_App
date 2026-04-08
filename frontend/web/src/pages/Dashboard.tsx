@@ -180,7 +180,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
             )}
 
             {pendingFollowUps.length > 0 && (
-                <Card sx={{ mb: 4, bgcolor: '#FFFBEB', border: '1px solid #F59E0B30' }}>
+                <Card sx={{ mb: 4, bgcolor: (t: any) => t.palette.mode === 'light' ? '#FFFBEB' : '#2A2215', border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#F59E0B30' : '#F59E0B40'}` }}>
                     <CardContent>
                         <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                             🔔 Pre-Decision Follow-ups ({pendingFollowUps.length})
@@ -193,7 +193,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                             return (
                                 <Box key={sc.id} sx={{
                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                    p: 1.5, mb: 1, bgcolor: 'white', borderRadius: 1, border: '1px solid #E4E4E7'
+                                    p: 1.5, mb: 1, bgcolor: 'background.paper', borderRadius: 1, border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}`
                                 }}>
                                     <Box sx={{ flex: 1 }}>
                                         <Typography variant="body2" fontWeight={600}>{sc.title}</Typography>
@@ -214,8 +214,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
             {patternWarnings.length > 0 && (
                 <Card sx={{
                     mb: 4,
-                    bgcolor: hasCritical ? '#FEF2F2' : patternWarnings[0]?.severity === 'info' ? '#F0FDF4' : '#FFFBEB',
-                    border: `1px solid ${hasCritical ? '#EF444430' : patternWarnings[0]?.severity === 'info' ? '#10B98130' : '#F59E0B30'}`
+                    bgcolor: (t: any) => {
+                        const dark = t.palette.mode === 'dark';
+                        if (hasCritical) return dark ? '#2A1515' : '#FEF2F2';
+                        if (patternWarnings[0]?.severity === 'info') return dark ? '#0F2A1A' : '#F0FDF4';
+                        return dark ? '#2A2215' : '#FFFBEB';
+                    },
+                    border: (t: any) => {
+                        const a = t.palette.mode === 'dark' ? '40' : '30';
+                        if (hasCritical) return `1px solid #EF4444${a}`;
+                        if (patternWarnings[0]?.severity === 'info') return `1px solid #10B981${a}`;
+                        return `1px solid #F59E0B${a}`;
+                    }
                 }}>
                     <CardContent>
                         <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -227,12 +237,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                         {patternWarnings.map((warning, i) => (
                             <Box key={i} sx={{
                                 mb: 1.5, p: 1.5, borderRadius: 1,
-                                bgcolor: warning.severity === 'critical' ? '#FEE2E2'
-                                    : warning.severity === 'warning' ? '#FEF3C7'
-                                    : '#ECFDF5',
-                                border: `1px solid ${warning.severity === 'critical' ? '#EF444430'
-                                    : warning.severity === 'warning' ? '#F59E0B30'
-                                    : '#10B98130'}`
+                                bgcolor: (t: any) => {
+                                    const dark = t.palette.mode === 'dark';
+                                    if (warning.severity === 'critical') return dark ? '#3A1A1A' : '#FEE2E2';
+                                    if (warning.severity === 'warning') return dark ? '#332A10' : '#FEF3C7';
+                                    return dark ? '#0F2A1A' : '#ECFDF5';
+                                },
+                                border: (t: any) => {
+                                    const a = t.palette.mode === 'dark' ? '40' : '30';
+                                    if (warning.severity === 'critical') return `1px solid #EF4444${a}`;
+                                    if (warning.severity === 'warning') return `1px solid #F59E0B${a}`;
+                                    return `1px solid #10B981${a}`;
+                                }
                             }}>
                                 <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
                                     {warning.icon} {warning.title}
@@ -279,7 +295,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isGuest }) => {
                                             value={Math.max(5, Math.min(100, normalizedValue))}
                                             sx={{
                                                 height: 8, borderRadius: 4,
-                                                bgcolor: '#E4E4E7',
+                                                bgcolor: (t: any) => t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544',
                                                 '& .MuiLinearProgress-bar': { bgcolor: levelInfo.color, borderRadius: 4 }
                                             }}
                                         />

@@ -59,7 +59,7 @@ export const About: React.FC = () => {
                 <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
                     <Table size="small">
                         <TableHead>
-                            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                            <TableRow sx={{ bgcolor: (t: any) => t.palette.mode === 'light' ? '#f5f5f5' : '#1A2332' }}>
                                 <TableCell sx={{ fontWeight: 700 }}>Pillar</TableCell>
                                 <TableCell sx={{ fontWeight: 700 }}>✅ Good (+1)</TableCell>
                                 <TableCell sx={{ fontWeight: 700 }}>⚠️ Partial (0)</TableCell>
@@ -170,7 +170,7 @@ export const About: React.FC = () => {
                 <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
                         <TableHead>
-                            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                            <TableRow sx={{ bgcolor: (t: any) => t.palette.mode === 'light' ? '#f5f5f5' : '#1A2332' }}>
                                 <TableCell sx={{ fontWeight: 700 }}>Layer</TableCell>
                                 <TableCell sx={{ fontWeight: 700 }}>Technology</TableCell>
                                 <TableCell sx={{ fontWeight: 700 }}>Purpose</TableCell>
@@ -268,7 +268,7 @@ export const About: React.FC = () => {
                 <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
                         <TableHead>
-                            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                            <TableRow sx={{ bgcolor: (t: any) => t.palette.mode === 'light' ? '#f5f5f5' : '#1A2332' }}>
                                 <TableCell sx={{ fontWeight: 700 }}>User Type</TableCell>
                                 <TableCell sx={{ fontWeight: 700 }}>How They Use ClarityPro</TableCell>
                             </TableRow>
@@ -325,7 +325,7 @@ export const About: React.FC = () => {
             </Section>
 
             {/* Cost */}
-            <Card sx={{ mb: 3, bgcolor: '#f0fdf4', border: '1px solid #10B98130' }}>
+            <Card sx={{ mb: 3, bgcolor: (t: any) => t.palette.mode === 'light' ? '#f0fdf4' : '#0F2A1A', border: (t: any) => `1px solid ${t.palette.mode === 'dark' ? '#10B98140' : '#10B98130'}` }}>
                 <CardContent>
                     <Typography variant="h6" fontWeight={700} gutterBottom>
                         💰 Hosting Cost: $0/month
