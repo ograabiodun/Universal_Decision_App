@@ -375,13 +375,13 @@ export const ScorecardDetail: React.FC = () => {
                                 sx={{
                                     mb: 2,
                                     p: 2,
-                                    bgcolor: 'background.paper',
+                                    bgcolor: (t: any) => t.palette.mode === 'light' ? '#f5f7fa' : '#0D2137',
                                     borderRadius: 2,
-                                    border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}`
+                                    border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#263241'}`
                                 }}
                             >
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="body2" fontWeight={600}>{s.pillarName}</Typography>
+                                    <Typography variant="body2" fontWeight={600} sx={{ color: 'text.primary' }}>{s.pillarName}</Typography>
                                     {levelInfo && (
                                         <Chip
                                             label={`${levelInfo.icon} ${levelInfo.label}`}
@@ -393,7 +393,7 @@ export const ScorecardDetail: React.FC = () => {
 
                                 {feedback && (
                                     <Box sx={{ mt: 1 }}>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                        <Typography variant="body2" sx={{ color: (t: any) => t.palette.mode === 'light' ? 'text.secondary' : '#C7D3DF', mb: 0.5 }}>
                                             {feedback.feedback}
                                         </Typography>
                                         {s.level !== 'good' && (
@@ -405,7 +405,7 @@ export const ScorecardDetail: React.FC = () => {
                                 )}
 
                                 {s.notes && (
-                                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', color: (t: any) => t.palette.mode === 'light' ? 'inherit' : '#C7D3DF' }}>
                                         &ldquo;{s.notes}&rdquo;
                                     </Typography>
                                 )}
