@@ -369,7 +369,48 @@ export const ScorecardDetail: React.FC = () => {
                         const feedback = s.level ? getPillarFeedback(s.pillarId, s.pillarName, s.level) : null;
 
                         return (
-                            <Box key={s.pillarId} sx={{ mb: 2, p: 2, bgcolor: '#f5f7fa', borderRadius: 1 }}>
+                            <Paper
+                                key={s.pillarId}
+                                elevation={0}
+                                sx={{
+                                    mb: 2,
+                                    p: 2,
+                                    bgcolor: 'background.paper',
+                                    borderRadius: 2,
+                                    border: (t: any) => `1px solid ${t.palette.mode === 'light' ? '#E4E4E7' : '#2A3544'}`
+                                }}
+                            >
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="body2" fontWeight={600}>{s.pillarName}</Typography>
+                                    {levelInfo && (
+                                        <Chip
+                                            label={`${levelInfo.icon} ${levelInfo.label}`}
+                                            size="small"
+                                            sx={{ bgcolor: `${levelInfo.color}20`, color: levelInfo.color, fontWeight: 600 }}
+                                        />
+                                    )}
+                                </Box>
+
+                                {feedback && (
+                                    <Box sx={{ mt: 1 }}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                            {feedback.feedback}
+                                        </Typography>
+                                        {s.level !== 'good' && (
+                                            <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                                                → {feedback.actionItem}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                )}
+
+                                {s.notes && (
+                                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                                        &ldquo;{s.notes}&rdquo;
+                                    </Typography>
+                                )}
+                            </Paper>
+                        );
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Typography variant="body2" fontWeight={600}>
                                         {s.pillarName}
@@ -579,7 +620,7 @@ export const ScorecardDetail: React.FC = () => {
                 </Card>
             )}
 
-            <Card sx={{ mb: 3, bgcolor: (t: any) => t.palette.mode === 'light' ? '#f0f7ff' : '#0D2137' }}>
+            <Card sx={{ mb: 3, bgcolor: (t: any) => t.palette.mode === 'light' ? '#f0f7ff' : '#0D2137', maxWidth: '100%' }}>
                 <CardContent>
                     <Typography variant="subtitle2" fontWeight={600} gutterBottom>💡 Decision Insights</Typography>
                     {(() => {
@@ -598,7 +639,7 @@ export const ScorecardDetail: React.FC = () => {
                 </CardContent>
             </Card>
 
-            <Card sx={{ mb: 3, bgcolor: scorecard.aiInsights ? (theme: any) => theme.palette.mode === 'light' ? '#E8F4FD' : '#0D2137' : undefined }}>
+            <Card sx={{ mb: 3, bgcolor: scorecard.aiInsights ? (theme: any) => theme.palette.mode === 'light' ? '#E8F4FD' : '#0D2137' : undefined, maxWidth: '100%' }}>
                 <CardContent>
                     <Typography variant="subtitle2" fontWeight={600} gutterBottom>🤖 AI-Powered Insights</Typography>
                     {scorecard.aiInsights ? (
